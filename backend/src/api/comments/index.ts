@@ -26,6 +26,7 @@ comments.get("/", async (c) => {
 
 comments.post("/resolve", async (c) => {
   const data = await c.req.json();
+  console.log({ data });
 
   const [row] =
     await sql`UPDATE comment SET resolved = ${data.resolved} WHERE id = ${data.id} RETURNING *`;
@@ -36,10 +37,10 @@ comments.post("/resolve", async (c) => {
 });
 
 comments.get("/:id", async (c) => {
-  const id = c.req.param("id")
-  const comment = await sql`SELECT * FROM comment WHERE id = ${id}`
+  const id = c.req.param("id");
+  const comment = await sql`SELECT * FROM comment WHERE id = ${id}`;
 
-  return c.json(comment)
-})
+  return c.json(comment);
+});
 
 export { comments };

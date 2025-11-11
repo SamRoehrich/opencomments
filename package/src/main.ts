@@ -5,15 +5,22 @@ import { createCommentButton } from "./lib/create-comment-button.ts";
 import { getAllComments } from "./api/comments/index.ts";
 import { createWidget } from "./ui/widget.ts";
 
-createWidget()
+createWidget();
 
 const comments = await getAllComments();
 for (const comment of comments) {
-  if (comment?.["x_cordinate"] && comment?.["y_cordinate"]) {
-    createCommentButton({
-      x: comment["x_cordinate"],
-      y: comment["y_cordinate"],
-    }, comment.id);
+  if (
+    comment?.["x_cordinate"] &&
+    comment?.["y_cordinate"] &&
+    !comment?.resolved
+  ) {
+    createCommentButton(
+      {
+        x: comment["x_cordinate"],
+        y: comment["y_cordinate"],
+      },
+      comment.id,
+    );
   }
 }
 
