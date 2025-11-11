@@ -1,5 +1,5 @@
 import { resolveComment } from "../api/comments";
-import type { Comment } from "../lib/types";
+import type { Comment } from "@opencomments/types";
 export const comment = ({ comment }: { comment: Comment }) => {
   const parent = document.createElement("div");
   const resolveButton = document.createElement("button");
