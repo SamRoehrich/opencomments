@@ -1,5 +1,5 @@
 export type Comment = {
-  id: string;
+  id?: string;
   resolved: boolean;
   description: string;
   x_cordinate: string;

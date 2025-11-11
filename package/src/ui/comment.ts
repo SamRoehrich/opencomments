@@ -1,3 +1,4 @@
+import { resolveComment } from "../api/comments";
 import type { Comment } from "../lib/types";
 export const comment = ({ comment }: { comment: Comment }) => {
   const parent = document.createElement("div");
@@ -9,14 +10,9 @@ export const comment = ({ comment }: { comment: Comment }) => {
     : "<p>Resolve</p>";
 
   resolveButton.onclick = async () => {
-    const res = await fetch("http://localhost:3001/api/comments/resolve", {
-      method: "POST",
-      body: JSON.stringify({ id: comment.id, resolved: !comment.resolved }),
-    });
+    const res = await resolveComment(comment.id, comment.resolved);
 
-    const data = await res.json();
-
-    if (data?.resolved) {
+    if (res?.resolved) {
       resolveButton.innerHTML = "<p>Resolved</p>";
     }
   };

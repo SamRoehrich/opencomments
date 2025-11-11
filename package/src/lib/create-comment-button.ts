@@ -1,5 +1,5 @@
+import { getComment } from "../api/comments";
 import { comment } from "../ui/comment";
-import type { Comment } from "./types";
 
 export type Cordinates = {
   x: number;
@@ -24,9 +24,6 @@ export const createCommentButton = (cordinates: Cordinates, id: string) => {
 };
 
 async function handleCommentIconClick(id: string) {
-  const commentData = await fetch(`http://localhost:3001/api/comments/${id}`);
-  console.log({ commentData });
-  const data = (await commentData.json()) as Comment;
-  console.log({ data });
-  comment({ comment: data[0] });
+  const commentData = await getComment(id);
+  comment({ comment: commentData[0] });
 }
