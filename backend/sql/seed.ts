@@ -7,11 +7,15 @@ export const seed = async () => {
           id SERIAL PRIMARY KEY,
           url TEXT,
           description TEXT,
-          element_id TEXT,
-          x_cordinate INT,
-          y_cordinate INT,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          resolved BOOLEAN
+          resolved BOOLEAN,
+          selector TEXT[] NOT NULL,
+          relative_x NUMERIC NOT NULL,
+          relative_y NUMERIC NOT NULL,
+          element_height NUMERIC NOT NULL,
+          element_width NUMERIC NOT NULL,
+          viewport_height INTEGER NOT NULL,
+          viewport_width INTEGER NOT NULL
       )
    `;
 

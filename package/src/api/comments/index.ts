@@ -1,4 +1,4 @@
-import type { Comment } from "../../lib/types";
+import type { Comment, ElementPositionMeta } from "../../lib/types";
 
 export const getAllComments = async () => {
   const data = await fetch("http://localhost:3001/api/comments");
@@ -24,15 +24,17 @@ export const resolveComment = async (id: string, resolved: boolean) => {
   return data;
 };
 
-export const createComment = async (comment: Comment) => {
+export const createComment = async (
+  comment: Comment,
+  elementInfo: ElementPositionMeta,
+) => {
   const res = await fetch("http://localhost:3001/api/comments/create", {
     method: "POST",
     body: JSON.stringify({
       description: comment.description,
-      x_cordinate: comment.x_cordinate,
-      y_cordinate: comment.y_cordinate,
       url: window.location.href,
       resolved: false,
+      ...elementInfo,
     }),
   });
   const data = await res?.json();
