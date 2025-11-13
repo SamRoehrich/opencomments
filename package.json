@@ -1,11 +1,8 @@
 {
-  "name": "opencomments-monorepo",
+  "name": "@opencomments",
   "private": true,
   "type": "module",
   "workspaces": [
-    "backend",
-    "frontend",
-    "package",
     "packages/*"
   ]
 }

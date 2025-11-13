@@ -1,5 +1,5 @@
 {
-  "name": "frontend",
+  "name": "@opencomments/frontend",
   "private": true,
   "type": "module",
   "scripts": {

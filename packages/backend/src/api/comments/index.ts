@@ -1,14 +1,16 @@
 import { sql } from "bun";
 import { Hono } from "hono";
+import type { CommentInsert } from "@opencomments/types";
 
 const comments = new Hono();
 
 comments.post("/create", async (c) => {
-  const comment = await c.req.json();
+  const comment = (await c.req.json()) as CommentInsert;
 
   const [row] = await sql`
-    INSERT INTO comment (url, cordinates, description, resolved, x_cordinate, y_cordinate)
-    VALUES (${comment.url}, ${comment.cordinates}, ${comment.description}, ${comment.resolved}, ${comment.x_cordinate}, ${comment.y_cordinate})
+    INSERT INTO comment 
+    (url, description, resolved, selector, relative_x, relative_y, element_height, element_width, viewport_height, viewport_width)
+    VALUES (${comment.url}, ${comment.description}, ${comment.resolved}, ${sql.array(comment.selector)}, ${comment.relative_x}, ${comment.relative_y}, ${comment.element_height}, ${comment.element_width}, ${comment.viewport_height}, ${comment.viewport_width})
     RETURNING *`;
 
   if (row) {

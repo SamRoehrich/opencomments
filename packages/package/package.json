@@ -1,5 +1,5 @@
 {
-  "name": "package",
+  "name": "@opencomments/package",
   "dependencies": {
     "@opencomments/types": "workspace:*"
   },

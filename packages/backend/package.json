@@ -1,5 +1,5 @@
 {
-  "name": "slop-or-not",
+  "name": "@opencomments/backend",
   "module": "index.ts",
   "type": "module",
   "private": true,
@@ -10,6 +10,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@opencomments/types": "workspace:*",
     "@types/pg": "^8.15.6",
     "better-auth": "^1.3.34",
     "bun-plugin-tailwind": "^0.1.2",

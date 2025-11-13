@@ -6,7 +6,6 @@ import {
 import type { ElementPositionMeta } from "../lib/types";
 
 export const createCommentForm = (args: ElementPositionMeta) => {
-  console.log({ args });
   removeCreateCommentFormListener();
   const parent = document.createElement("div");
   parent.style.border = "1px solid black";
@@ -41,13 +40,18 @@ async function handleButtonClick(
 ) {
   e.preventDefault();
   const comment = input.value;
-  const data = await createComment(
-    {
-      description: comment,
-      resolved: false,
-    },
-    elementInfo,
-  );
+  const data = await createComment({
+    relative_x: elementInfo.relativeX,
+    relative_y: elementInfo.relativeY,
+    element_width: elementInfo.clickElementWidth,
+    element_height: elementInfo.clickElementHeight,
+    selector: elementInfo.selector,
+    viewport_width: elementInfo.viewportWidth,
+    viewport_height: elementInfo.viewportHeight,
+    resolved: false,
+    description: comment,
+    url: window.location.href,
+  });
 
   if (data.id) {
     document.body.removeChild(parent);

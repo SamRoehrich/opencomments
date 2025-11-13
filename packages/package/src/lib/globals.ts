@@ -1,13 +1,17 @@
 import { createCommentForm } from "../ui/comment-form";
+import { getXPath } from "./get-xpath";
 
 const handleMouseDown = (e: MouseEvent) => {
   const clickElement = e.target;
-  console.log({ clickElement });
+  if (!clickElement) {
+    console.error("idk what you clicked but you can't leave a comment on it");
+  }
 
   const selector = [];
 
   if (clickElement?.id) selector.push(`#id:${clickElement.id}`);
   if (clickElement?.class) selector.push(`class:${clickElement.class}`);
+  if (clickElement) selector.push(getXPath(clickElement));
   const relativeX = e.clientX - clickElement.getBoundingClientRect().left;
   const relativeY = e.clientY - clickElement.getBoundingClientRect().top;
 
