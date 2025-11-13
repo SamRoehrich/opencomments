@@ -1,0 +1,9 @@
+{
+  "name": "@opencomments",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ]
+}
+

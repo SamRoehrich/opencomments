@@ -1,0 +1,3 @@
+ALTER TABLE comment
+ADD COLUMN IF NOT EXISTS element_id TEXT,
+DROP COLUMN IF EXISTS cordinates;
