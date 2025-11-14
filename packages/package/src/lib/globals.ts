@@ -1,5 +1,6 @@
 import { createCommentForm } from "../ui/comment-form";
 import { getXPath } from "./get-xpath";
+import { getUserSettings } from "../ui/widget";
 
 const handleMouseDown = (e: MouseEvent) => {
   e.stopPropagation(); // Stop propagation to prevent immediate close

@@ -1,6 +1,7 @@
 import { resolveIssue, getComments, createComment } from "../api/comments";
 import type { Issue, Comment } from "@opencomments/types";
 import { renderAllIssues } from "../lib/render-all-issues";
+import { getUserSettings } from "./widget";
 
 // Store reference to existing dialog to remove it when opening a new one
 let existingDialog: HTMLElement | null = null;
@@ -232,10 +233,18 @@ export const comment = ({
     submitCommentButton.textContent = "Posting...";
 
     try {
+      const settings = getUserSettings();
+      if (!settings) {
+        alert("Please configure your name and environment first");
+        submitCommentButton.disabled = false;
+        submitCommentButton.textContent = "Post Comment";
+        return;
+      }
+
       await createComment({
         comment: commentText,
         issue_id: issue.id,
-        user_id: "sam-test", // TODO: Get from auth
+        user_id: settings.name,
       });
       
       commentInput.value = "";

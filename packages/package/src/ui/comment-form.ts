@@ -156,6 +156,17 @@ async function handleButtonClick(
   
   submitButton.innerHTML = "Creating...";
   
+  // Get user settings from widget
+  const { getUserSettings } = await import("../ui/widget");
+  const settings = getUserSettings();
+  
+  if (!settings) {
+    alert("Please configure your name and environment first");
+    submitButton.disabled = false;
+    submitButton.innerHTML = originalText;
+    return;
+  }
+
   const data = await createIssue({
     relative_x: elementInfo.relativeX,
     relative_y: elementInfo.relativeY,
@@ -167,8 +178,8 @@ async function handleButtonClick(
     resolved: false,
     description: comment,
     url: window.location.href,
-    user_id: "sam-test",
-    env_id: "sam-test",
+    user_id: settings.name,
+    env_id: settings.env,
     screenshot: screenshot || undefined
   });
 

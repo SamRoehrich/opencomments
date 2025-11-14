@@ -22,14 +22,29 @@ issues.post("/create", async (c) => {
 });
 
 issues.get("/", async (c) => {
-  const issues = await sql`
-    SELECT 
-      id, url, description, created_at, resolved, selector, 
-      relative_x, relative_y, element_height, element_width, 
-      viewport_height, viewport_width, env_id, screenshot
-    FROM issue
-  `;
-  return c.json(issues);
+  const envId = c.req.query("env");
+  
+  if (envId) {
+    const issues = await sql`
+      SELECT 
+        id, url, description, created_at, resolved, selector, 
+        relative_x, relative_y, element_height, element_width, 
+        viewport_height, viewport_width, env_id, screenshot
+      FROM issue
+      WHERE env_id = ${envId}
+    `;
+    return c.json(issues);
+  } else {
+    // If no env specified, return all issues (backward compatibility)
+    const issues = await sql`
+      SELECT 
+        id, url, description, created_at, resolved, selector, 
+        relative_x, relative_y, element_height, element_width, 
+        viewport_height, viewport_width, env_id, screenshot
+      FROM issue
+    `;
+    return c.json(issues);
+  }
 });
 
 issues.post("/resolve", async (c) => {

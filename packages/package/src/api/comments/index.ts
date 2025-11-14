@@ -1,7 +1,10 @@
 import type { Issue, IssueInsert, Comment, CommentInsert } from "@opencomments/types";
 
-export const getAllIssues = async (): Promise<Issue[]> => {
-  const data = await fetch("http://localhost:3001/api/issues");
+export const getAllIssues = async (envId?: string): Promise<Issue[]> => {
+  const url = envId 
+    ? `http://localhost:3001/api/issues?env=${encodeURIComponent(envId)}`
+    : "http://localhost:3001/api/issues";
+  const data = await fetch(url);
   const issues = await data.json() as Issue[];
 
   return issues;
