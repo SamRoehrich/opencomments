@@ -1,6 +1,7 @@
 import { resolveIssue } from "../api/comments";
 import type { Issue } from "@opencomments/types";
-export const comment = ({ issue }: { issue: Issue }) => {
+import { renderAllIssues } from "../lib/render-all-issues";
+export const comment = ({ issue, commentElementId }: { issue: Issue; commentElementId: string; }) => {
   const parent = document.createElement("div");
   const resolveButton = document.createElement("button");
   resolveButton.style.height = "64px";
@@ -10,11 +11,15 @@ export const comment = ({ issue }: { issue: Issue }) => {
     : "<p>Resolve</p>";
 
   resolveButton.onclick = async () => {
-    const res = await resolveIssue(issue.id, issue.resolved);
+    const res = await resolveIssue(issue.id, !issue.resolved);
 
     if (res?.resolved) {
-      resolveButton.innerHTML = "<p>Resolved</p>";
+      resolveButton.style.display = "none";
+      if (typeof document.getElementById(commentElementId) !== 'undefined') {
+       document.getElementById(commentElementId)!.style.display = "none";
+      }
     }
+    await renderAllIssues();
   };
 
   parent.appendChild(resolveButton);

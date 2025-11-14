@@ -1,28 +1,11 @@
 import "./style.css";
 import typescriptLogo from "./typescript.svg";
 import viteLogo from "/vite.svg";
-import { createCommentButton } from "./lib/create-comment-button.ts";
-import { getAllIssues } from "./api/comments/index.ts";
 import { createWidget } from "./ui/widget.ts";
+import { renderAllIssues } from "./lib/render-all-issues.ts";
 
 createWidget();
-
-const issues = await getAllIssues();
-for (const comment of issues) {
-  if (
-    comment?.["x_cordinate"] &&
-    comment?.["y_cordinate"] &&
-    !comment?.resolved
-  ) {
-    createCommentButton(
-      {
-        x: comment["x_cordinate"],
-        y: comment["y_cordinate"],
-      },
-      comment.id,
-    );
-  }
-}
+renderAllIssues()
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   <div>

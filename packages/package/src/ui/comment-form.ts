@@ -3,6 +3,7 @@ import {
   addCreateCommentFormListener,
   removeCreateCommentFormListener,
 } from "../lib/globals";
+import { renderAllIssues } from "../lib/render-all-issues";
 import type { ElementPositionMeta } from "../lib/types";
 
 export const createCommentForm = (args: ElementPositionMeta) => {
@@ -58,5 +59,6 @@ async function handleButtonClick(
   if (data.id) {
     document.body.removeChild(parent);
     addCreateCommentFormListener();
+    await renderAllIssues();
   }
 }

@@ -1,20 +1,20 @@
-import type { IssueInsert } from "@opencomments/types";
+import type { Issue, IssueInsert } from "@opencomments/types";
 
-export const getAllIssues = async () => {
+export const getAllIssues = async (): Promise<Issue[]> => {
   const data = await fetch("http://localhost:3001/api/issues");
-  const issues = await data.json();
+  const issues = await data.json() as Issue[];
 
   return issues;
 };
 
-export const getIssue = async (id: string) => {
+export const getIssue = async (id: number): Promise<Issue> => {
   const data = await fetch(`http://localhost:3001/api/issues/${id}`);
   const res = await data?.json();
 
-  return res;
+  return res[0];
 };
 
-export const resolveIssue = async (id: number, resolved: boolean) => {
+export const resolveIssue = async (id: number, resolved: boolean): Promise<Issue> => {
   const res = await fetch("http://localhost:3001/api/issues/resolve", {
     method: "POST",
     body: JSON.stringify({ id, resolved }),
@@ -24,7 +24,7 @@ export const resolveIssue = async (id: number, resolved: boolean) => {
   return data;
 };
 
-export const createIssue = async (issue: IssueInsert) => {
+export const createIssue = async (issue: IssueInsert): Promise<Issue> => {
   const res = await fetch("http://localhost:3001/api/issues/create", {
     method: "POST",
     body: JSON.stringify({
