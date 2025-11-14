@@ -1,10 +1,10 @@
 import { Hono } from "hono";
-import { comments } from "./comments";
+import { issues } from "./issues";
 import { authHandler } from "./auth";
 
 const api = new Hono();
 
-api.route("/comments", comments);
+api.route("/issues", issues);
 api.route("/auth", authHandler);
 
 export { api };

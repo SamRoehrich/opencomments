@@ -1,3 +1,3 @@
-ALTER TABLE comment
+ALTER TABLE issue
 ADD COLUMN IF NOT EXISTS element_id TEXT,
 DROP COLUMN IF EXISTS cordinates;

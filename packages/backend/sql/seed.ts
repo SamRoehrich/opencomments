@@ -3,7 +3,7 @@ import { readdir } from "node:fs/promises";
 
 export const seed = async () => {
   await sql`
-      CREATE TABLE IF NOT EXISTS comment (
+      CREATE TABLE IF NOT EXISTS issue (
           id SERIAL PRIMARY KEY,
           url TEXT,
           description TEXT,
@@ -15,7 +15,8 @@ export const seed = async () => {
           element_height NUMERIC NOT NULL,
           element_width NUMERIC NOT NULL,
           viewport_height INTEGER NOT NULL,
-          viewport_width INTEGER NOT NULL
+          viewport_width INTEGER NOT NULL,
+          env_id TEXT NOT NULL
       )
    `;
 
