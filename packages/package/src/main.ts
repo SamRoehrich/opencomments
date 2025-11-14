@@ -4,8 +4,6 @@ import viteLogo from "/vite.svg";
 import { createWidget } from "./ui/widget.ts";
 import { renderAllIssues } from "./lib/render-all-issues.ts";
 
-createWidget();
-renderAllIssues()
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   <div>
@@ -24,3 +22,6 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
     </p>
   </div>
 `;
+
+createWidget();
+(async () => await renderAllIssues())()

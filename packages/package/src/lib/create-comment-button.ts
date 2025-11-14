@@ -1,13 +1,87 @@
 import type { Issue } from "@opencomments/types";
 import { getIssue } from "../api/comments";
 import { comment } from "../ui/comment";
+import { getElementByXPath } from "./get-element-by-xpath";
 
-export type Cordinates = {
-  x: number;
-  y: number;
-};
+// Store resize handler to avoid multiple listeners
+let resizeHandler: (() => void) | null = null;
+const iconElements = new Map<number, { element: HTMLElement; issue: Issue; parent: HTMLElement }>();
+
+function updateIconPosition(iconData: { element: HTMLElement; issue: Issue; parent: HTMLElement }) {
+  const { element, issue, parent } = iconData;
+  const currentWidth = parent.offsetWidth || parent.clientWidth;
+  const currentHeight = parent.offsetHeight || parent.clientHeight;
+  
+  // Calculate scale factors based on current vs original element size
+  const widthScale = issue.element_width > 0 ? currentWidth / issue.element_width : 1;
+  const heightScale = issue.element_height > 0 ? currentHeight / issue.element_height : 1;
+  
+  // Scale the position based on element size changes
+  const scaledX = issue.relative_x * widthScale;
+  const scaledY = issue.relative_y * heightScale;
+  
+  element.style.left = `${scaledX}px`;
+  element.style.top = `${scaledY}px`;
+}
+
+function setupResizeListener() {
+  if (resizeHandler) return; // Already set up
+  
+  resizeHandler = () => {
+    iconElements.forEach(updateIconPosition);
+  };
+  
+  window.addEventListener('resize', resizeHandler);
+}
+
+export const clearAllIcons = () => {
+  iconElements.forEach(({ element }) => {
+    element.remove();
+  });
+  iconElements.clear();
+}
+
 export const createCommentButton = (issue: Issue) => {
   if (issue) {
+    console.log({ issue })
+    let parent: Element | null = null;
+    
+    // Try to find element by ID selector first (#id:...)
+    const idSelector = issue.selector.find(s => s && s.startsWith('#id:'));
+    if (idSelector) {
+      const id = idSelector.replace('#id:', '');
+      parent = document.getElementById(id);
+    }
+    
+    // If not found by ID, try XPath selector
+    if (!parent) {
+      const xpathSelector = issue.selector.find(s => s && (s.startsWith('/') || s.startsWith('"/') || s.startsWith("'/") || s.includes('[@id=')));
+      if (xpathSelector) {
+        // Remove surrounding quotes and unescape any escaped quotes within the XPath
+        let xpath = xpathSelector.replace(/^["']|["']$/g, '').replace(/\\"/g, '"').replace(/\\'/g, "'");
+        parent = getElementByXPath(xpath);
+      }
+    }
+    
+    if (!parent) {
+      console.warn(`Could not find element for issue ${issue.id}. Selectors:`, issue.selector);
+      return;
+    }
+    
+    // Ensure parent has position: relative so absolute positioning works relative to it
+    const parentElement = parent as HTMLElement;
+    const computedStyle = window.getComputedStyle(parentElement);
+    if (computedStyle.position === 'static') {
+      parentElement.style.position = 'relative';
+    }
+    
+    // Remove existing icon if it exists
+    const existingIcon = document.getElementById(issue.id.toString());
+    if (existingIcon) {
+      existingIcon.remove();
+      iconElements.delete(issue.id);
+    }
+    
     const dialogEl = document.createElement("div");
     dialogEl.id = issue.id.toString();
     dialogEl.style.height = "16px";
@@ -15,12 +89,21 @@ export const createCommentButton = (issue: Issue) => {
     dialogEl.style.width = "16px";
     dialogEl.style.borderRadius = "100px";
     dialogEl.style.backgroundColor = "red";
-    dialogEl.style.top = `${issue.relative_y}px`;
-    dialogEl.style.left = `${issue.relative_x}px`;
+    dialogEl.style.zIndex = "9999";
+    dialogEl.style.cursor = "pointer";
 
     dialogEl.onclick = (e) => handleCommentIconClick(issue.id, e);
 
-    document.body.appendChild(dialogEl);
+    parentElement.appendChild(dialogEl);
+    
+    // Store icon data for resize updates
+    iconElements.set(issue.id, { element: dialogEl, issue, parent: parentElement });
+    
+    // Set initial position
+    updateIconPosition({ element: dialogEl, issue, parent: parentElement });
+    
+    // Setup resize listener if not already done
+    setupResizeListener();
   }
 };
 

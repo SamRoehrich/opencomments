@@ -3,10 +3,9 @@ import { createCommentButton } from "./create-comment-button";
 
 export const renderAllIssues = async () => {
   const issues = await getAllIssues();
-  for (const issue of issues) {
-    if(!issue.resolved) {
-     createCommentButton(issue);
-    }
-  }
+  console.log({ issues })
+  issues.forEach(issue => {
+     !issue.resolved && createCommentButton(issue);
+  })
 }
 
