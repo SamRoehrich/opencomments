@@ -4,6 +4,11 @@
   "type": "module",
   "workspaces": [
     "packages/*"
-  ]
+  ],
+  "dependencies": {
+    "sst": "3.17.23"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "4.20251113.0"
+  }
 }
-
