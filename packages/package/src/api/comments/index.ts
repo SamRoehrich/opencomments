@@ -1,4 +1,4 @@
-import type { Issue, IssueInsert } from "@opencomments/types";
+import type { Issue, IssueInsert, Comment, CommentInsert } from "@opencomments/types";
 
 export const getAllIssues = async (): Promise<Issue[]> => {
   const data = await fetch("http://localhost:3001/api/issues");
@@ -32,5 +32,24 @@ export const createIssue = async (issue: IssueInsert): Promise<Issue> => {
     }),
   });
   const data = await res?.json();
+  return data;
+};
+
+// Comment API functions
+export const getComments = async (issueId: number): Promise<Comment[]> => {
+  const res = await fetch(`http://localhost:3001/api/comments/issue/${issueId}`);
+  const comments = await res.json() as Comment[];
+  return comments;
+};
+
+export const createComment = async (comment: CommentInsert): Promise<Comment> => {
+  const res = await fetch("http://localhost:3001/api/comments/create", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(comment),
+  });
+  const data = await res.json();
   return data;
 };
