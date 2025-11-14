@@ -34,25 +34,93 @@ export const comment = ({
   parent.style.maxHeight = "85vh";
   parent.style.overflowY = "auto";
 
-  // Create screenshot display if available
+  // Create screenshot icon button if available
   let screenshotContainer: HTMLElement | null = null;
   if (issue.screenshot) {
     screenshotContainer = document.createElement("div");
     screenshotContainer.style.marginBottom = "12px";
-    screenshotContainer.style.borderRadius = "4px";
-    screenshotContainer.style.overflow = "hidden";
-    screenshotContainer.style.border = "1px solid #e0e0e0";
+    screenshotContainer.style.display = "flex";
+    screenshotContainer.style.alignItems = "center";
+    screenshotContainer.style.gap = "8px";
     
-    const screenshotImg = document.createElement("img");
-    screenshotImg.src = issue.screenshot;
-    screenshotImg.style.width = "100%";
-    screenshotImg.style.height = "auto";
-    screenshotImg.style.display = "block";
-    screenshotImg.style.maxHeight = "300px";
-    screenshotImg.style.objectFit = "contain";
-    screenshotImg.alt = "Screenshot of the page when comment was created";
+    const imageIconButton = document.createElement("button");
+    imageIconButton.style.display = "flex";
+    imageIconButton.style.alignItems = "center";
+    imageIconButton.style.justifyContent = "center";
+    imageIconButton.style.padding = "8px";
+    imageIconButton.style.border = "1px solid #e0e0e0";
+    imageIconButton.style.borderRadius = "4px";
+    imageIconButton.style.backgroundColor = "white";
+    imageIconButton.style.cursor = "pointer";
+    imageIconButton.style.transition = "background-color 0.2s, border-color 0.2s";
+    imageIconButton.style.width = "40px";
+    imageIconButton.style.height = "40px";
+    imageIconButton.title = "View screenshot";
     
-    screenshotContainer.appendChild(screenshotImg);
+    // Create image icon SVG
+    const imageIconSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    imageIconSvg.setAttribute("width", "20");
+    imageIconSvg.setAttribute("height", "20");
+    imageIconSvg.setAttribute("viewBox", "0 0 24 24");
+    imageIconSvg.setAttribute("fill", "none");
+    imageIconSvg.setAttribute("stroke", "currentColor");
+    imageIconSvg.setAttribute("stroke-width", "2");
+    imageIconSvg.setAttribute("stroke-linecap", "round");
+    imageIconSvg.setAttribute("stroke-linejoin", "round");
+    
+    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    rect.setAttribute("x", "3");
+    rect.setAttribute("y", "3");
+    rect.setAttribute("width", "18");
+    rect.setAttribute("height", "18");
+    rect.setAttribute("rx", "2");
+    rect.setAttribute("ry", "2");
+    imageIconSvg.appendChild(rect);
+    
+    const circle1 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    circle1.setAttribute("cx", "9");
+    circle1.setAttribute("cy", "9");
+    circle1.setAttribute("r", "2");
+    imageIconSvg.appendChild(circle1);
+    
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", "M21 15l-3.086-3.086a2 2 0 0 0-2.828 0L6 21");
+    imageIconSvg.appendChild(path);
+    
+    imageIconSvg.style.color = "#6b7280";
+    imageIconButton.appendChild(imageIconSvg);
+    
+    imageIconButton.onmouseenter = () => {
+      imageIconButton.style.backgroundColor = "#f3f4f6";
+      imageIconButton.style.borderColor = "#9ca3af";
+    };
+    
+    imageIconButton.onmouseleave = () => {
+      imageIconButton.style.backgroundColor = "white";
+      imageIconButton.style.borderColor = "#e0e0e0";
+    };
+    
+    imageIconButton.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (issue.screenshot) {
+        window.open(issue.screenshot, "_blank");
+      }
+    };
+    
+    screenshotContainer.appendChild(imageIconButton);
+    
+    const imageLabel = document.createElement("span");
+    imageLabel.textContent = "View screenshot";
+    imageLabel.style.fontSize = "14px";
+    imageLabel.style.color = "#6b7280";
+    imageLabel.style.cursor = "pointer";
+    imageLabel.onclick = () => {
+      if (issue.screenshot) {
+        window.open(issue.screenshot, "_blank");
+      }
+    };
+    screenshotContainer.appendChild(imageLabel);
   }
 
   // Create comment text display
