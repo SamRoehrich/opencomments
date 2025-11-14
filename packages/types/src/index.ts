@@ -13,6 +13,8 @@ export type Issue = {
   viewport_height: number;
   viewport_width: number;
   user_id: string;
+  env_id: string | null;
+  screenshot?: string | null; // Base64-encoded image
 };
 
 export type IssueInsert = {
@@ -27,6 +29,8 @@ export type IssueInsert = {
   viewport_height: number;
   viewport_width: number;
   user_id: string;
+  env_id?: string;
+  screenshot?: string; // Base64-encoded image
 };
 
 export type IssueUpdate = Partial<Omit<IssueInsert, "selector">> & {
