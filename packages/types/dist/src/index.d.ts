@@ -3,7 +3,7 @@ export type Issue = {
     url: string | null;
     description: string | null;
     created_at: Date;
-    resolved: boolean;
+    resolved: boolean | null;
     selector: string[];
     relative_x: number;
     relative_y: number;
@@ -12,7 +12,8 @@ export type Issue = {
     viewport_height: number;
     viewport_width: number;
     user_id: string;
-    env_id: string;
+    env_id: string | null;
+    screenshot?: string | null;
 };
 export type IssueInsert = {
     url?: string;
@@ -26,7 +27,8 @@ export type IssueInsert = {
     viewport_height: number;
     viewport_width: number;
     user_id: string;
-    env_id: string;
+    env_id?: string;
+    screenshot?: string;
 };
 export type IssueUpdate = Partial<Omit<IssueInsert, "selector">> & {
     selector?: string[];

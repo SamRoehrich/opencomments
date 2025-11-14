@@ -9,9 +9,9 @@ issues.post("/create", async (c) => {
 
   const [row] = await sql`
     INSERT INTO issue 
-    (url, description, resolved, selector, relative_x, relative_y, element_height, element_width, viewport_height, viewport_width, env_id)
-    VALUES (${issue.url}, ${issue.description}, ${issue.resolved}, ${sql.array(issue.selector)}, ${issue.relative_x}, ${issue.relative_y}, ${issue.element_height}, ${issue.element_width}, ${issue.viewport_height}, ${issue.viewport_width}, ${issue.env_id})
-    RETURNING *`;
+    (url, description, resolved, selector, relative_x, relative_y, element_height, element_width, viewport_height, viewport_width, env_id, screenshot)
+    VALUES (${issue.url}, ${issue.description}, ${issue.resolved}, ${sql.array(issue.selector)}, ${issue.relative_x}, ${issue.relative_y}, ${issue.element_height}, ${issue.element_width}, ${issue.viewport_height}, ${issue.viewport_width}, ${issue.env_id}, ${issue.screenshot || null})
+    RETURNING id, url, description, created_at, resolved, selector, relative_x, relative_y, element_height, element_width, viewport_height, viewport_width, env_id, screenshot`;
 
   if (row) {
     return c.json(row);
@@ -22,7 +22,13 @@ issues.post("/create", async (c) => {
 });
 
 issues.get("/", async (c) => {
-  const issues = await sql`SELECT * FROM issue`;
+  const issues = await sql`
+    SELECT 
+      id, url, description, created_at, resolved, selector, 
+      relative_x, relative_y, element_height, element_width, 
+      viewport_height, viewport_width, env_id, screenshot
+    FROM issue
+  `;
   return c.json(issues);
 });
 
@@ -30,7 +36,7 @@ issues.post("/resolve", async (c) => {
   const data = await c.req.json();
 
   const [row] =
-    await sql`UPDATE issue SET resolved = ${data.resolved} WHERE id = ${data.id} RETURNING *`;
+    await sql`UPDATE issue SET resolved = ${data.resolved} WHERE id = ${data.id} RETURNING id, url, description, created_at, resolved, selector, relative_x, relative_y, element_height, element_width, viewport_height, viewport_width, env_id, screenshot`;
 
   if (row) return c.json(row);
   c.status(400);
@@ -39,7 +45,14 @@ issues.post("/resolve", async (c) => {
 
 issues.get("/:id", async (c) => {
   const id = c.req.param("id");
-  const issue = await sql`SELECT * FROM issue WHERE id = ${id}`;
+  const issue = await sql`
+    SELECT 
+      id, url, description, created_at, resolved, selector, 
+      relative_x, relative_y, element_height, element_width, 
+      viewport_height, viewport_width, env_id, screenshot
+    FROM issue 
+    WHERE id = ${id}
+  `;
 
   return c.json(issue);
 });

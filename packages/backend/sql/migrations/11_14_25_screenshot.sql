@@ -1,0 +1,3 @@
+ALTER TABLE issue
+ADD COLUMN IF NOT EXISTS screenshot TEXT;
+

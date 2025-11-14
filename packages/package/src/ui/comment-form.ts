@@ -5,6 +5,7 @@ import {
 } from "../lib/globals";
 import { renderAllIssues } from "../lib/render-all-issues";
 import type { ElementPositionMeta } from "../lib/types";
+import { captureViewportScreenshot } from "../lib/capture-screenshot";
 
 export const createCommentForm = (args: ElementPositionMeta) => {
   removeCreateCommentFormListener();
@@ -106,7 +107,7 @@ export const createCommentForm = (args: ElementPositionMeta) => {
   submitButton.style.color = "white";
   submitButton.style.cursor = "pointer";
   submitButton.style.fontSize = "14px";
-  submitButton.onclick = (e) => handleButtonClick(e, input, args, parent);
+  submitButton.onclick = (e) => handleButtonClick(e, input, args, parent, submitButton);
 
   buttonContainer.appendChild(cancelButton);
   buttonContainer.appendChild(submitButton);
@@ -139,10 +140,22 @@ async function handleButtonClick(
   input: HTMLTextAreaElement,
   elementInfo: ElementPositionMeta,
   parent: HTMLDivElement,
+  submitButton: HTMLButtonElement,
 ) {
   e.preventDefault();
   e.stopPropagation();
   const comment = input.value;
+  
+  // Disable button while processing
+  const originalText = submitButton.innerHTML;
+  submitButton.disabled = true;
+  submitButton.innerHTML = "Capturing...";
+  
+  // Capture screenshot before creating the issue
+  const screenshot = await captureViewportScreenshot();
+  
+  submitButton.innerHTML = "Creating...";
+  
   const data = await createIssue({
     relative_x: elementInfo.relativeX,
     relative_y: elementInfo.relativeY,
@@ -155,7 +168,8 @@ async function handleButtonClick(
     description: comment,
     url: window.location.href,
     user_id: "sam-test",
-    env_id: "sam-test"
+    env_id: "sam-test",
+    screenshot: screenshot || undefined
   });
 
   if (data.id) {
@@ -163,5 +177,9 @@ async function handleButtonClick(
     // Don't re-add the listener - go back to normal mode
     // User needs to click the widget again to enter comment mode
     await renderAllIssues();
+  } else {
+    // Re-enable button if creation failed
+    submitButton.disabled = false;
+    submitButton.innerHTML = originalText;
   }
 }

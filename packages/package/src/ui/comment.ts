@@ -29,7 +29,30 @@ export const comment = ({
   parent.style.padding = "16px";
   parent.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.1)";
   parent.style.minWidth = "200px";
-  parent.style.maxWidth = "300px";
+  parent.style.maxWidth = "400px";
+  parent.style.maxHeight = "80vh";
+  parent.style.overflowY = "auto";
+
+  // Create screenshot display if available
+  let screenshotContainer: HTMLElement | null = null;
+  if (issue.screenshot) {
+    screenshotContainer = document.createElement("div");
+    screenshotContainer.style.marginBottom = "12px";
+    screenshotContainer.style.borderRadius = "4px";
+    screenshotContainer.style.overflow = "hidden";
+    screenshotContainer.style.border = "1px solid #e0e0e0";
+    
+    const screenshotImg = document.createElement("img");
+    screenshotImg.src = issue.screenshot;
+    screenshotImg.style.width = "100%";
+    screenshotImg.style.height = "auto";
+    screenshotImg.style.display = "block";
+    screenshotImg.style.maxHeight = "300px";
+    screenshotImg.style.objectFit = "contain";
+    screenshotImg.alt = "Screenshot of the page when comment was created";
+    
+    screenshotContainer.appendChild(screenshotImg);
+  }
 
   // Create comment text display
   const commentText = document.createElement("div");
@@ -105,7 +128,10 @@ export const comment = ({
     }
   };
 
-  // Add comment text to dialog
+  // Add elements to dialog in order: screenshot, comment text, button
+  if (screenshotContainer) {
+    parent.appendChild(screenshotContainer);
+  }
   parent.appendChild(commentText);
   parent.appendChild(buttonContainer);
 
