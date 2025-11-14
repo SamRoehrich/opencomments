@@ -9,8 +9,8 @@ issues.post("/create", async (c) => {
 
   const [row] = await sql`
     INSERT INTO issue 
-    (url, description, resolved, selector, relative_x, relative_y, element_height, element_width, viewport_height, viewport_width)
-    VALUES (${issue.url}, ${issue.description}, ${issue.resolved}, ${sql.array(issue.selector)}, ${issue.relative_x}, ${issue.relative_y}, ${issue.element_height}, ${issue.element_width}, ${issue.viewport_height}, ${issue.viewport_width})
+    (url, description, resolved, selector, relative_x, relative_y, element_height, element_width, viewport_height, viewport_width, env_id)
+    VALUES (${issue.url}, ${issue.description}, ${issue.resolved}, ${sql.array(issue.selector)}, ${issue.relative_x}, ${issue.relative_y}, ${issue.element_height}, ${issue.element_width}, ${issue.viewport_height}, ${issue.viewport_width}, ${issue.env_id})
     RETURNING *`;
 
   if (row) {

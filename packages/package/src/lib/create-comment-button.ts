@@ -1,4 +1,4 @@
-import { getComment } from "../api/comments";
+import { getIssue } from "../api/comments";
 import { comment } from "../ui/comment";
 
 export type Cordinates = {
@@ -24,6 +24,6 @@ export const createCommentButton = (cordinates: Cordinates, id: string) => {
 };
 
 async function handleCommentIconClick(id: string) {
-  const commentData = await getComment(id);
-  comment({ comment: commentData[0] });
+  const commentData = await getIssue(id);
+  comment({ issue: commentData[0] });
 }

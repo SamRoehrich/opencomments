@@ -1,4 +1,4 @@
-import { createComment } from "../api/comments";
+import { createIssue } from "../api/comments";
 import {
   addCreateCommentFormListener,
   removeCreateCommentFormListener,
@@ -40,7 +40,7 @@ async function handleButtonClick(
 ) {
   e.preventDefault();
   const comment = input.value;
-  const data = await createComment({
+  const data = await createIssue({
     relative_x: elementInfo.relativeX,
     relative_y: elementInfo.relativeY,
     element_width: elementInfo.clickElementWidth,
@@ -51,6 +51,8 @@ async function handleButtonClick(
     resolved: false,
     description: comment,
     url: window.location.href,
+    user_id: "sam-test",
+    env_id: "sam-test"
   });
 
   if (data.id) {

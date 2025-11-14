@@ -1,21 +1,21 @@
-import type { CommentInsert } from "@opencomments/types";
+import type { IssueInsert } from "@opencomments/types";
 
-export const getAllComments = async () => {
-  const data = await fetch("http://localhost:3001/api/comments");
-  const comments = await data.json();
+export const getAllIssues = async () => {
+  const data = await fetch("http://localhost:3001/api/issues");
+  const issues = await data.json();
 
-  return comments;
+  return issues;
 };
 
-export const getComment = async (id: string) => {
-  const data = await fetch(`http://localhost:3001/api/comments/${id}`);
+export const getIssue = async (id: string) => {
+  const data = await fetch(`http://localhost:3001/api/issues/${id}`);
   const res = await data?.json();
 
   return res;
 };
 
-export const resolveComment = async (id: string, resolved: boolean) => {
-  const res = await fetch("http://localhost:3001/api/comments/resolve", {
+export const resolveIssue = async (id: number, resolved: boolean) => {
+  const res = await fetch("http://localhost:3001/api/issues/resolve", {
     method: "POST",
     body: JSON.stringify({ id, resolved }),
   });
@@ -24,11 +24,11 @@ export const resolveComment = async (id: string, resolved: boolean) => {
   return data;
 };
 
-export const createComment = async (comment: CommentInsert) => {
-  const res = await fetch("http://localhost:3001/api/comments/create", {
+export const createIssue = async (issue: IssueInsert) => {
+  const res = await fetch("http://localhost:3001/api/issues/create", {
     method: "POST",
     body: JSON.stringify({
-      ...comment,
+      ...issue,
     }),
   });
   const data = await res?.json();

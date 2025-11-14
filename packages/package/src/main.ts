@@ -2,13 +2,13 @@ import "./style.css";
 import typescriptLogo from "./typescript.svg";
 import viteLogo from "/vite.svg";
 import { createCommentButton } from "./lib/create-comment-button.ts";
-import { getAllComments } from "./api/comments/index.ts";
+import { getAllIssues } from "./api/comments/index.ts";
 import { createWidget } from "./ui/widget.ts";
 
 createWidget();
 
-const comments = await getAllComments();
-for (const comment of comments) {
+const issues = await getAllIssues();
+for (const comment of issues) {
   if (
     comment?.["x_cordinate"] &&
     comment?.["y_cordinate"] &&

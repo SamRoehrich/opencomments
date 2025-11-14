@@ -1,3 +1,0 @@
-ALTER TABLE issue
-ADD COLUMN IF NOT EXISTS x_cordinate INT,
-ADD COLUMN IF NOT EXISTS y_cordinate INT;
