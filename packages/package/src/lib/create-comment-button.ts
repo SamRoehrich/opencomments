@@ -108,6 +108,18 @@ export const createCommentButton = (issue: Issue) => {
 };
 
 async function handleCommentIconClick(id: number, e: MouseEvent) {
+  e.stopPropagation(); // Prevent event bubbling
   const commentData = await getIssue(id);
-  comment({ issue: commentData, commentElementId:  e?.target?.id});
+  const iconElement = e.target as HTMLElement;
+  const iconRect = iconElement.getBoundingClientRect();
+  
+  // Get icon position relative to viewport
+  const iconX = iconRect.left;
+  const iconY = iconRect.top + iconRect.height; // Position below the icon
+  
+  comment({ 
+    issue: commentData, 
+    commentElementId: iconElement.id,
+    position: { x: iconX, y: iconY }
+  });
 }

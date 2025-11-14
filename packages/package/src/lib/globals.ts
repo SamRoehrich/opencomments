@@ -2,9 +2,11 @@ import { createCommentForm } from "../ui/comment-form";
 import { getXPath } from "./get-xpath";
 
 const handleMouseDown = (e: MouseEvent) => {
+  e.stopPropagation(); // Stop propagation to prevent immediate close
   const clickElement = e.target;
   if (!clickElement) {
     console.error("idk what you clicked but you can't leave a comment on it");
+    return;
   }
 
   const selector = [];
@@ -20,6 +22,10 @@ const handleMouseDown = (e: MouseEvent) => {
   const viewportWidth = window.innerWidth;
   const viewportHeight = window.innerHeight;
 
+  // Get click position for form placement
+  const clickX = e.clientX;
+  const clickY = e.clientY;
+
   createCommentForm({
     selector,
     relativeX,
@@ -28,13 +34,21 @@ const handleMouseDown = (e: MouseEvent) => {
     clickElementHeight,
     viewportWidth,
     viewportHeight,
+    clickPosition: { x: clickX, y: clickY }
   });
 };
 
-export const addCreateCommentFormListener = () =>
+export const addCreateCommentFormListener = () => {
   window.addEventListener("mousedown", handleMouseDown);
-export const removeCreateCommentFormListener = () =>
+  // Change cursor to pointer to indicate comment mode
+  document.body.style.cursor = "pointer";
+};
+
+export const removeCreateCommentFormListener = () => {
   window.removeEventListener("mousedown", handleMouseDown);
+  // Reset cursor to normal
+  document.body.style.cursor = "default";
+};
 
 window.comments = {
   handleMouseDown,

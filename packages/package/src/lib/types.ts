@@ -6,6 +6,7 @@ export type ElementPositionMeta = {
   clickElementHeight: number;
   viewportWidth: number;
   viewportHeight: number;
+  clickPosition?: { x: number; y: number };
 };
 
 export type Comment = {
