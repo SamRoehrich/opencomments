@@ -1,6 +1,7 @@
 {
-  "short_name": "TanStack App",
-  "name": "Create TanStack App Sample",
+  "short_name": "OpenComments",
+  "name": "OpenComments - Contextual Feedback Made Simple",
+  "description": "Leave contextual feedback directly on any webpage. No screenshots, no confusion. Comment on any element and collaborate with your team seamlessly.",
   "icons": [
     {
       "src": "favicon.ico",
@@ -20,6 +21,6 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
+  "theme_color": "#2563eb",
   "background_color": "#ffffff"
 }

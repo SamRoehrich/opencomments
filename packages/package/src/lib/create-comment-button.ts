@@ -55,10 +55,28 @@ export const createCommentButton = (issue: Issue) => {
     
     // If not found by ID, try XPath selector
     if (!parent) {
-      const xpathSelector = issue.selector.find(s => s && (s.startsWith('/') || s.startsWith('"/') || s.startsWith("'/") || s.includes('[@id=')));
+      // Find XPath selector - it might be wrapped in quotes
+      const xpathSelector = issue.selector.find(s => {
+        if (!s) return false;
+        // Remove quotes to check if it's an XPath
+        const cleaned = s.replace(/^["']+|["']+$/g, '');
+        return cleaned.startsWith('/') || cleaned.includes('[@id=');
+      });
+      
       if (xpathSelector) {
         // Remove surrounding quotes and unescape any escaped quotes within the XPath
-        let xpath = xpathSelector.replace(/^["']|["']$/g, '').replace(/\\"/g, '"').replace(/\\'/g, "'");
+        let xpath = xpathSelector.trim();
+        
+        // Remove quotes from start and end (handle multiple quote types)
+        while ((xpath.startsWith('"') && xpath.endsWith('"')) || 
+               (xpath.startsWith("'") && xpath.endsWith("'"))) {
+          xpath = xpath.slice(1, -1);
+        }
+        
+        // Unescape any escaped quotes within the XPath
+        xpath = xpath.replace(/\\"/g, '"').replace(/\\'/g, "'");
+        
+        console.log('Cleaned XPath:', xpath, 'from original:', xpathSelector);
         parent = getElementByXPath(xpath);
       }
     }

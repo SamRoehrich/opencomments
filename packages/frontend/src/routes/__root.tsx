@@ -6,8 +6,6 @@ import {
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { TanStackDevtools } from "@tanstack/react-devtools";
 
-import Header from "../components/Header";
-
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
 
 import appCss from "../styles.css?url";
@@ -29,7 +27,58 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         content: "width=device-width, initial-scale=1",
       },
       {
-        title: "Roller",
+        title: "OpenComments - Contextual Feedback Made Simple",
+      },
+      {
+        name: "description",
+        content: "Leave contextual feedback directly on any webpage. No screenshots, no confusion. Comment on any element and collaborate with your team seamlessly.",
+      },
+      {
+        name: "keywords",
+        content: "feedback, comments, design review, collaboration, web feedback, contextual comments, open source",
+      },
+      {
+        name: "author",
+        content: "OpenComments",
+      },
+      // Open Graph / Facebook
+      {
+        property: "og:type",
+        content: "website",
+      },
+      {
+        property: "og:title",
+        content: "OpenComments - Contextual Feedback Made Simple",
+      },
+      {
+        property: "og:description",
+        content: "Leave contextual feedback directly on any webpage. No screenshots, no confusion. Comment on any element and collaborate with your team seamlessly.",
+      },
+      {
+        property: "og:url",
+        content: "https://opencomments.dev",
+      },
+      {
+        property: "og:site_name",
+        content: "OpenComments",
+      },
+      // Twitter
+      {
+        name: "twitter:card",
+        content: "summary_large_image",
+      },
+      {
+        name: "twitter:title",
+        content: "OpenComments - Contextual Feedback Made Simple",
+      },
+      {
+        name: "twitter:description",
+        content: "Leave contextual feedback directly on any webpage. No screenshots, no confusion. Comment on any element and collaborate with your team seamlessly.",
+      },
+      // Theme
+      {
+        name: "theme-color",
+        content: "#2563eb",
       },
     ],
     links: [
@@ -50,7 +99,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        <Header />
         {children}
         <TanStackDevtools
           config={{
