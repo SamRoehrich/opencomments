@@ -1,0 +1,11 @@
+CREATE TABLE IF NOT EXISTS comment (
+    id SERIAL PRIMARY KEY,
+    comment TEXT NOT NULL,
+    issue_id INTEGER NOT NULL REFERENCES issue(id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_comment_issue_id ON comment(issue_id);
+

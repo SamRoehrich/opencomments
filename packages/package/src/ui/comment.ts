@@ -1,5 +1,5 @@
-import { resolveIssue } from "../api/comments";
-import type { Issue } from "@opencomments/types";
+import { resolveIssue, getComments, createComment } from "../api/comments";
+import type { Issue, Comment } from "@opencomments/types";
 import { renderAllIssues } from "../lib/render-all-issues";
 
 // Store reference to existing dialog to remove it when opening a new one
@@ -28,9 +28,9 @@ export const comment = ({
   parent.style.borderRadius = "8px";
   parent.style.padding = "16px";
   parent.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.1)";
-  parent.style.minWidth = "200px";
-  parent.style.maxWidth = "400px";
-  parent.style.maxHeight = "80vh";
+  parent.style.minWidth = "300px";
+  parent.style.maxWidth = "500px";
+  parent.style.maxHeight = "85vh";
   parent.style.overflowY = "auto";
 
   // Create screenshot display if available
@@ -128,12 +128,143 @@ export const comment = ({
     }
   };
 
-  // Add elements to dialog in order: screenshot, comment text, button
+  // Comments section
+  const commentsSection = document.createElement("div");
+  commentsSection.style.marginTop = "16px";
+  commentsSection.style.borderTop = "1px solid #e0e0e0";
+  commentsSection.style.paddingTop = "16px";
+
+  const commentsTitle = document.createElement("div");
+  commentsTitle.style.fontSize = "16px";
+  commentsTitle.style.fontWeight = "600";
+  commentsTitle.style.marginBottom = "12px";
+  commentsTitle.style.color = "#333";
+  commentsTitle.textContent = "Comments";
+
+  const commentsList = document.createElement("div");
+  commentsList.style.marginBottom = "12px";
+  commentsList.style.maxHeight = "200px";
+  commentsList.style.overflowY = "auto";
+
+  // Comment form
+  const commentForm = document.createElement("div");
+  commentForm.style.display = "flex";
+  commentForm.style.flexDirection = "column";
+  commentForm.style.gap = "8px";
+
+  const commentInput = document.createElement("textarea");
+  commentInput.style.width = "100%";
+  commentInput.style.padding = "8px";
+  commentInput.style.border = "1px solid #ccc";
+  commentInput.style.borderRadius = "4px";
+  commentInput.style.fontSize = "14px";
+  commentInput.style.fontFamily = "inherit";
+  commentInput.style.resize = "vertical";
+  commentInput.style.minHeight = "60px";
+  commentInput.placeholder = "Add a comment...";
+
+  const submitCommentButton = document.createElement("button");
+  submitCommentButton.textContent = "Post Comment";
+  submitCommentButton.style.padding = "6px 12px";
+  submitCommentButton.style.borderRadius = "4px";
+  submitCommentButton.style.border = "1px solid #4caf50";
+  submitCommentButton.style.backgroundColor = "#4caf50";
+  submitCommentButton.style.color = "white";
+  submitCommentButton.style.cursor = "pointer";
+  submitCommentButton.style.fontSize = "14px";
+  submitCommentButton.style.alignSelf = "flex-end";
+
+  const renderComments = async () => {
+    try {
+      const comments = await getComments(issue.id);
+      commentsList.innerHTML = "";
+
+      if (comments.length === 0) {
+        const noComments = document.createElement("div");
+        noComments.style.padding = "8px";
+        noComments.style.color = "#999";
+        noComments.style.fontSize = "14px";
+        noComments.style.fontStyle = "italic";
+        noComments.textContent = "No comments yet";
+        commentsList.appendChild(noComments);
+      } else {
+        comments.forEach((comment: Comment) => {
+          const commentItem = document.createElement("div");
+          commentItem.style.marginBottom = "12px";
+          commentItem.style.padding = "8px";
+          commentItem.style.backgroundColor = "#f9f9f9";
+          commentItem.style.borderRadius = "4px";
+          commentItem.style.borderLeft = "3px solid #4caf50";
+
+          const commentText = document.createElement("div");
+          commentText.style.fontSize = "14px";
+          commentText.style.color = "#333";
+          commentText.style.marginBottom = "4px";
+          commentText.style.wordWrap = "break-word";
+          commentText.textContent = comment.comment;
+
+          const commentMeta = document.createElement("div");
+          commentMeta.style.fontSize = "12px";
+          commentMeta.style.color = "#999";
+          const date = new Date(comment.created_at);
+          commentMeta.textContent = `By ${comment.user_id} • ${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+
+          commentItem.appendChild(commentText);
+          commentItem.appendChild(commentMeta);
+          commentsList.appendChild(commentItem);
+        });
+      }
+    } catch (error) {
+      console.error("Failed to load comments:", error);
+    }
+  };
+
+  submitCommentButton.onclick = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const commentText = commentInput.value.trim();
+    
+    if (!commentText) {
+      return;
+    }
+
+    submitCommentButton.disabled = true;
+    submitCommentButton.textContent = "Posting...";
+
+    try {
+      await createComment({
+        comment: commentText,
+        issue_id: issue.id,
+        user_id: "sam-test", // TODO: Get from auth
+      });
+      
+      commentInput.value = "";
+      await renderComments();
+    } catch (error) {
+      console.error("Failed to create comment:", error);
+    } finally {
+      submitCommentButton.disabled = false;
+      submitCommentButton.textContent = "Post Comment";
+    }
+  };
+
+  commentForm.appendChild(commentInput);
+  commentForm.appendChild(submitCommentButton);
+
+  commentsSection.appendChild(commentsTitle);
+  commentsSection.appendChild(commentsList);
+  commentsSection.appendChild(commentForm);
+
+  // Add elements to dialog in order: screenshot, comment text, button, comments
   if (screenshotContainer) {
     parent.appendChild(screenshotContainer);
   }
   parent.appendChild(commentText);
   parent.appendChild(buttonContainer);
+  parent.appendChild(commentsSection);
+
+  // Load comments
+  renderComments();
 
   // Add click outside to close functionality
   const handleClickOutside = (event: MouseEvent) => {
@@ -195,7 +326,7 @@ export const comment = ({
     parent.style.left = "50%";
     parent.style.top = "50%";
     parent.style.transform = "translate(-50%, -50%)";
-    document.body.appendChild(parent);
+  document.body.appendChild(parent);
   }
   
   existingDialog = parent;
