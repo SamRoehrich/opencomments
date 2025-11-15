@@ -5,10 +5,35 @@
 For the Cloudflare Workers GUI, use this build command with Bun:
 
 ```bash
-bun install
+bun install --frozen-lockfile || bun install
 ```
 
-This ensures you're using the latest Bun version for dependency installation.
+This will:
+1. Try to install with frozen lockfile (fails if lockfile is out of sync)
+2. If that fails, update the lockfile and install (for Cloudflare's build environment)
+
+## Fixing Lockfile Issues
+
+If Cloudflare build fails due to lockfile changes, run this locally from the **repository root**:
+
+```bash
+cd packages/backend
+bun install
+cd ../..
+bun install
+git add bun.lock packages/backend/bun.lock
+git commit -m "Update lockfiles"
+git push
+```
+
+Or from the root (if using workspace):
+
+```bash
+bun install
+git add bun.lock packages/backend/bun.lock
+git commit -m "Update lockfiles"
+git push
+```
 
 ## Alternative Commands
 
