@@ -7,10 +7,12 @@ compatibility_flags = ["nodejs_compat"]
 # 
 # IMPORTANT: This is a monorepo workspace. Cloudflare needs to install from ROOT.
 #
-# In Cloudflare Workers Dashboard → Settings → Builds:
+# For Cloudflare Workers Dashboard → Settings → Builds:
 # - Root directory: Leave EMPTY (repository root)
-# - Build command: bun install --frozen-lockfile || bun install
+# - Build command: bun install
+# - Deploy command: (leave empty)
 #
+# For GitHub Actions: Dependencies are installed from root, then wrangler deploy runs from packages/backend
 # This ensures workspace dependencies (@opencomments/types) are resolved.
 # Wrangler will automatically bundle TypeScript using esbuild.
 

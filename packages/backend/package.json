@@ -20,7 +20,7 @@
   },
   "scripts": {
     "dev": "bun --watch index.ts",
-    "build": "bun install --frozen-lockfile || bun install",
-    "deploy": "bun install --frozen-lockfile || bun install && wrangler deploy"
+    "build": "echo 'Dependencies installed - Wrangler will bundle TypeScript automatically'",
+    "deploy": "wrangler deploy"
   }
 }

@@ -34,12 +34,14 @@ Root directory: (leave EMPTY - repository root)
 
 1. Go to Cloudflare Dashboard → Workers & Pages → Your Worker → Settings → Builds
 2. **Root directory**: Delete `/packages/backend` (leave empty)
-3. **Build command**: Replace with:
+3. **Build command**: Set to:
    ```bash
-   curl -fsSL https://bun.sh/install | bash && export PATH="$HOME/.bun/bin:$PATH" && bun install --frozen-lockfile || bun install
+   bun install
    ```
-4. **Deploy command**: Change to `npx wrangler deploy` or leave empty
+4. **Deploy command**: **DELETE** `npx wrangler versions upload` and **LEAVE EMPTY** (or use `npx wrangler deploy`)
 5. Save and try deploying again
+
+**Important**: `wrangler versions upload` is ONLY for versioned deployments with static assets. For regular Workers, leave deploy command empty or use `npx wrangler deploy`.
 
 ## Alternative (If Bun is Pre-installed)
 

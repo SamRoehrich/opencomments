@@ -14,10 +14,9 @@ Since this is a **monorepo workspace**, Cloudflare needs to install dependencies
 bun install
 ```
 
-3. **Deploy command**: Leave empty (Wrangler handles this automatically) OR use:
-```bash
-npx wrangler deploy
-```
+3. **Deploy command**: **LEAVE EMPTY** (Wrangler handles deployment automatically)
+
+   **DO NOT USE**: `npx wrangler versions upload` - This is only for versioned deployments with static assets, not regular Workers.
 
 **Note**: Cloudflare already has Bun installed, so we don't need the curl command. Using `bun install` (without `--frozen-lockfile`) will update the lockfile if needed.
 
