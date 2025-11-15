@@ -22,39 +22,16 @@ export const comment = ({
   }
 
   const parent = document.createElement("div");
-  parent.style.position = "fixed";
-  parent.style.zIndex = "10000";
-  parent.style.backgroundColor = "white";
-  parent.style.border = "1px solid #ccc";
-  parent.style.borderRadius = "8px";
-  parent.style.padding = "16px";
-  parent.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.1)";
-  parent.style.minWidth = "300px";
-  parent.style.maxWidth = "500px";
-  parent.style.maxHeight = "85vh";
-  parent.style.overflowY = "auto";
+  parent.className = "opencomments-comment-dialog";
 
   // Create screenshot icon button if available
   let screenshotContainer: HTMLElement | null = null;
   if (issue.screenshot) {
     screenshotContainer = document.createElement("div");
-    screenshotContainer.style.marginBottom = "12px";
-    screenshotContainer.style.display = "flex";
-    screenshotContainer.style.alignItems = "center";
-    screenshotContainer.style.gap = "8px";
+    screenshotContainer.className = "opencomments-screenshot-container";
     
     const imageIconButton = document.createElement("button");
-    imageIconButton.style.display = "flex";
-    imageIconButton.style.alignItems = "center";
-    imageIconButton.style.justifyContent = "center";
-    imageIconButton.style.padding = "8px";
-    imageIconButton.style.border = "1px solid #e0e0e0";
-    imageIconButton.style.borderRadius = "4px";
-    imageIconButton.style.backgroundColor = "white";
-    imageIconButton.style.cursor = "pointer";
-    imageIconButton.style.transition = "background-color 0.2s, border-color 0.2s";
-    imageIconButton.style.width = "40px";
-    imageIconButton.style.height = "40px";
+    imageIconButton.className = "opencomments-screenshot-button";
     imageIconButton.title = "View screenshot";
     
     // Create image icon SVG
@@ -67,6 +44,7 @@ export const comment = ({
     imageIconSvg.setAttribute("stroke-width", "2");
     imageIconSvg.setAttribute("stroke-linecap", "round");
     imageIconSvg.setAttribute("stroke-linejoin", "round");
+    imageIconSvg.setAttribute("class", "opencomments-screenshot-icon");
     
     const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
     rect.setAttribute("x", "3");
@@ -87,18 +65,7 @@ export const comment = ({
     path.setAttribute("d", "M21 15l-3.086-3.086a2 2 0 0 0-2.828 0L6 21");
     imageIconSvg.appendChild(path);
     
-    imageIconSvg.style.color = "#6b7280";
     imageIconButton.appendChild(imageIconSvg);
-    
-    imageIconButton.onmouseenter = () => {
-      imageIconButton.style.backgroundColor = "#f3f4f6";
-      imageIconButton.style.borderColor = "#9ca3af";
-    };
-    
-    imageIconButton.onmouseleave = () => {
-      imageIconButton.style.backgroundColor = "white";
-      imageIconButton.style.borderColor = "#e0e0e0";
-    };
     
     imageIconButton.onclick = (e) => {
       e.preventDefault();
@@ -111,10 +78,8 @@ export const comment = ({
     screenshotContainer.appendChild(imageIconButton);
     
     const imageLabel = document.createElement("span");
+    imageLabel.className = "opencomments-screenshot-label";
     imageLabel.textContent = "View screenshot";
-    imageLabel.style.fontSize = "14px";
-    imageLabel.style.color = "#6b7280";
-    imageLabel.style.cursor = "pointer";
     imageLabel.onclick = () => {
       if (issue.screenshot) {
         window.open(issue.screenshot, "_blank");
@@ -125,38 +90,19 @@ export const comment = ({
 
   // Create comment text display
   const commentText = document.createElement("div");
-  commentText.style.marginBottom = "12px";
-  commentText.style.padding = "8px";
-  commentText.style.backgroundColor = "#f5f5f5";
-  commentText.style.borderRadius = "4px";
-  commentText.style.fontSize = "14px";
-  commentText.style.lineHeight = "1.5";
-  commentText.style.color = "#333";
-  commentText.style.wordWrap = "break-word";
+  commentText.className = "opencomments-comment-text";
   commentText.textContent = issue.description || "No description";
 
   // Create resolve button as a circle with green check
   const resolveButton = document.createElement("button");
-  resolveButton.style.width = "32px";
-  resolveButton.style.height = "32px";
-  resolveButton.style.borderRadius = "50%";
-  resolveButton.style.border = "2px solid #4caf50";
-  resolveButton.style.backgroundColor = issue.resolved ? "#4caf50" : "white";
-  resolveButton.style.cursor = "pointer";
-  resolveButton.style.display = "flex";
-  resolveButton.style.alignItems = "center";
-  resolveButton.style.justifyContent = "center";
-  resolveButton.style.marginLeft = "auto";
-  resolveButton.style.marginRight = "0";
-  resolveButton.style.transition = "background-color 0.2s";
-  resolveButton.style.padding = "0";
+  resolveButton.className = `opencomments-resolve-button${issue.resolved ? " opencomments-resolve-button--resolved" : ""}`;
   
   // Create checkmark SVG
   const checkmarkSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   checkmarkSvg.setAttribute("width", "20");
   checkmarkSvg.setAttribute("height", "20");
   checkmarkSvg.setAttribute("viewBox", "0 0 24 24");
-  checkmarkSvg.style.display = "block";
+  checkmarkSvg.setAttribute("class", "opencomments-resolve-checkmark");
   
   const checkmarkPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
   checkmarkPath.setAttribute("d", "M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z");
@@ -167,8 +113,7 @@ export const comment = ({
 
   // Button container for alignment
   const buttonContainer = document.createElement("div");
-  buttonContainer.style.display = "flex";
-  buttonContainer.style.justifyContent = "flex-end";
+  buttonContainer.className = "opencomments-resolve-button-container";
   buttonContainer.appendChild(resolveButton);
 
   resolveButton.onclick = async (e) => {
@@ -177,7 +122,7 @@ export const comment = ({
 
     if (res?.resolved) {
       // Update button appearance
-      resolveButton.style.backgroundColor = "#4caf50";
+      resolveButton.className = "opencomments-resolve-button opencomments-resolve-button--resolved";
       checkmarkPath.setAttribute("fill", "white");
       
       // Hide the icon
@@ -186,7 +131,7 @@ export const comment = ({
       }
     } else {
       // Update button appearance when unresolved
-      resolveButton.style.backgroundColor = "white";
+      resolveButton.className = "opencomments-resolve-button";
       checkmarkPath.setAttribute("fill", "#4caf50");
     }
     await renderAllIssues();
@@ -199,49 +144,26 @@ export const comment = ({
 
   // Comments section
   const commentsSection = document.createElement("div");
-  commentsSection.style.marginTop = "16px";
-  commentsSection.style.borderTop = "1px solid #e0e0e0";
-  commentsSection.style.paddingTop = "16px";
+  commentsSection.className = "opencomments-comments-section";
 
   const commentsTitle = document.createElement("div");
-  commentsTitle.style.fontSize = "16px";
-  commentsTitle.style.fontWeight = "600";
-  commentsTitle.style.marginBottom = "12px";
-  commentsTitle.style.color = "#333";
+  commentsTitle.className = "opencomments-comments-title";
   commentsTitle.textContent = "Comments";
 
   const commentsList = document.createElement("div");
-  commentsList.style.marginBottom = "12px";
-  commentsList.style.maxHeight = "200px";
-  commentsList.style.overflowY = "auto";
+  commentsList.className = "opencomments-comments-list";
 
   // Comment form
   const commentForm = document.createElement("div");
-  commentForm.style.display = "flex";
-  commentForm.style.flexDirection = "column";
-  commentForm.style.gap = "8px";
+  commentForm.className = "opencomments-comment-form";
 
   const commentInput = document.createElement("textarea");
-  commentInput.style.width = "100%";
-  commentInput.style.padding = "8px";
-  commentInput.style.border = "1px solid #ccc";
-  commentInput.style.borderRadius = "4px";
-  commentInput.style.fontSize = "14px";
-  commentInput.style.fontFamily = "inherit";
-  commentInput.style.resize = "vertical";
-  commentInput.style.minHeight = "60px";
+  commentInput.className = "opencomments-comment-input";
   commentInput.placeholder = "Add a comment...";
 
   const submitCommentButton = document.createElement("button");
+  submitCommentButton.className = "opencomments-submit-comment-button";
   submitCommentButton.textContent = "Post Comment";
-  submitCommentButton.style.padding = "6px 12px";
-  submitCommentButton.style.borderRadius = "4px";
-  submitCommentButton.style.border = "1px solid #4caf50";
-  submitCommentButton.style.backgroundColor = "#4caf50";
-  submitCommentButton.style.color = "white";
-  submitCommentButton.style.cursor = "pointer";
-  submitCommentButton.style.fontSize = "14px";
-  submitCommentButton.style.alignSelf = "flex-end";
 
   const renderComments = async () => {
     try {
@@ -250,31 +172,20 @@ export const comment = ({
 
       if (comments.length === 0) {
         const noComments = document.createElement("div");
-        noComments.style.padding = "8px";
-        noComments.style.color = "#999";
-        noComments.style.fontSize = "14px";
-        noComments.style.fontStyle = "italic";
+        noComments.className = "opencomments-no-comments";
         noComments.textContent = "No comments yet";
         commentsList.appendChild(noComments);
       } else {
         comments.forEach((comment: Comment) => {
           const commentItem = document.createElement("div");
-          commentItem.style.marginBottom = "12px";
-          commentItem.style.padding = "8px";
-          commentItem.style.backgroundColor = "#f9f9f9";
-          commentItem.style.borderRadius = "4px";
-          commentItem.style.borderLeft = "3px solid #4caf50";
+          commentItem.className = "opencomments-comment-item";
 
           const commentText = document.createElement("div");
-          commentText.style.fontSize = "14px";
-          commentText.style.color = "#333";
-          commentText.style.marginBottom = "4px";
-          commentText.style.wordWrap = "break-word";
+          commentText.className = "opencomments-comment-item-text";
           commentText.textContent = comment.comment;
 
           const commentMeta = document.createElement("div");
-          commentMeta.style.fontSize = "12px";
-          commentMeta.style.color = "#999";
+          commentMeta.className = "opencomments-comment-item-meta";
           const date = new Date(comment.created_at);
           commentMeta.textContent = `By ${comment.user_id} • ${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
 
@@ -349,12 +260,26 @@ export const comment = ({
       parent.remove();
       existingDialog = null;
       document.removeEventListener('click', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    }
+  };
+  
+  // Add Escape key handler to close dialog
+  const handleEscape = (event: KeyboardEvent) => {
+    if (event.key === "Escape" || event.keyCode === 27) {
+      event.preventDefault();
+      event.stopPropagation();
+      parent.remove();
+      existingDialog = null;
+      document.removeEventListener('click', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
     }
   };
   
   // Use setTimeout to avoid immediate trigger
   setTimeout(() => {
     document.addEventListener('click', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
   }, 0);
   
   // Position the dialog below the icon
@@ -400,10 +325,8 @@ export const comment = ({
     }
   } else {
     // Fallback to center of screen if position not provided
-    parent.style.left = "50%";
-    parent.style.top = "50%";
-    parent.style.transform = "translate(-50%, -50%)";
-  document.body.appendChild(parent);
+    parent.className = "opencomments-comment-dialog opencomments-comment-dialog--centered";
+    document.body.appendChild(parent);
   }
   
   existingDialog = parent;

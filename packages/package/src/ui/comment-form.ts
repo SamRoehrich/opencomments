@@ -9,15 +9,7 @@ import { captureViewportScreenshot } from "../lib/capture-screenshot";
 export const createCommentForm = (args: ElementPositionMeta) => {
   removeCreateCommentFormListener();
   const parent = document.createElement("div");
-  parent.style.border = "1px solid black";
-  parent.style.borderRadius = "8px";
-  parent.style.backgroundColor = "white";
-  parent.style.padding = "16px";
-  parent.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.1)";
-  parent.style.minWidth = "250px";
-  parent.style.maxWidth = "400px";
-  parent.style.position = "fixed";
-  parent.style.zIndex = "10000";
+  parent.className = "opencomments-create-form";
   
   // Position the form below where the user clicked
   if (args.clickPosition) {
@@ -53,60 +45,55 @@ export const createCommentForm = (args: ElementPositionMeta) => {
     }
   } else {
     // Fallback to center if no position provided
-    parent.style.left = "50%";
-    parent.style.top = "50%";
-    parent.style.transform = "translate(-50%, -50%)";
+    parent.className = "opencomments-create-form opencomments-create-form--centered";
     document.body.appendChild(parent);
   }
 
   const form = document.createElement("form");
-  form.style.height = "100%";
-  form.style.padding = "0";
-  form.style.display = "flex";
-  form.style.flexDirection = "column";
-  form.style.gap = "8px";
+  form.className = "opencomments-create-form-inner";
 
   const input = document.createElement("textarea");
-  input.style.borderRadius = "4px";
-  input.style.border = "1px solid #ccc";
-  input.style.padding = "8px";
-  input.style.height = "100px";
-  input.style.resize = "vertical";
-  input.style.fontFamily = "inherit";
-  input.style.fontSize = "14px";
+  input.className = "opencomments-create-form-textarea";
   input.placeholder = "Enter your comment...";
 
   const buttonContainer = document.createElement("div");
-  buttonContainer.style.display = "flex";
-  buttonContainer.style.gap = "8px";
-  buttonContainer.style.justifyContent = "flex-end";
+  buttonContainer.className = "opencomments-create-form-button-container";
+
+  const submitButton = document.createElement("button");
+  submitButton.className = "opencomments-create-form-button--submit";
+  submitButton.innerHTML = "Comment";
+  
+  // Add Command+Enter (Mac) or Ctrl+Enter (Windows/Linux) to submit
+  const handleSubmitShortcut = (event: KeyboardEvent) => {
+    // Check for Enter key
+    if (event.key === "Enter" || event.keyCode === 13) {
+      // Check for Command (Mac) or Ctrl (Windows/Linux)
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      const isModifierPressed = isMac ? event.metaKey : event.ctrlKey;
+      
+      if (isModifierPressed) {
+        event.preventDefault();
+        event.stopPropagation();
+        // Trigger submit button click
+        submitButton.click();
+      }
+    }
+  };
+  
+  submitButton.onclick = (e) => handleButtonClick(e, input, args, parent, submitButton, handleSubmitShortcut);
 
   const cancelButton = document.createElement("button");
+  cancelButton.className = "opencomments-create-form-button--cancel";
   cancelButton.innerHTML = "Cancel";
-  cancelButton.style.padding = "8px 16px";
-  cancelButton.style.borderRadius = "4px";
-  cancelButton.style.border = "1px solid #ccc";
-  cancelButton.style.backgroundColor = "white";
-  cancelButton.style.color = "#333";
-  cancelButton.style.cursor = "pointer";
-  cancelButton.style.fontSize = "14px";
   cancelButton.onclick = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    document.body.removeChild(parent);
+    if (parent.parentNode) {
+      parent.parentNode.removeChild(parent);
+    }
+    input.removeEventListener('keydown', handleSubmitShortcut);
     // Go back to normal mode - don't re-add listener
   };
-
-  const submitButton = document.createElement("button");
-  submitButton.innerHTML = "Comment";
-  submitButton.style.padding = "8px 16px";
-  submitButton.style.borderRadius = "4px";
-  submitButton.style.border = "1px solid #4caf50";
-  submitButton.style.backgroundColor = "#4caf50";
-  submitButton.style.color = "white";
-  submitButton.style.cursor = "pointer";
-  submitButton.style.fontSize = "14px";
-  submitButton.onclick = (e) => handleButtonClick(e, input, args, parent, submitButton);
 
   buttonContainer.appendChild(cancelButton);
   buttonContainer.appendChild(submitButton);
@@ -118,16 +105,39 @@ export const createCommentForm = (args: ElementPositionMeta) => {
   // Add click outside to close functionality
   const handleClickOutside = (event: MouseEvent) => {
     if (parent && !parent.contains(event.target as Node)) {
-      document.body.removeChild(parent);
+      if (parent.parentNode) {
+        parent.parentNode.removeChild(parent);
+      }
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+      input.removeEventListener('keydown', handleSubmitShortcut);
       // Go back to normal mode - don't re-add listener
     }
   };
+  
+  // Add Escape key handler to close form
+  const handleEscape = (event: KeyboardEvent) => {
+    if (event.key === "Escape" || event.keyCode === 27) {
+      event.preventDefault();
+      event.stopPropagation();
+      if (parent.parentNode) {
+        parent.parentNode.removeChild(parent);
+      }
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+      input.removeEventListener('keydown', handleSubmitShortcut);
+      // Go back to normal mode - don't re-add listener
+    }
+  };
+  
+  // Add keyboard shortcut listener to textarea
+  input.addEventListener('keydown', handleSubmitShortcut);
   
   // Use mousedown instead of click, and add a longer delay to avoid immediate trigger
   // This ensures the click that opened the form doesn't immediately close it
   setTimeout(() => {
     document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
   }, 100);
   
   // Focus the input
@@ -140,6 +150,7 @@ async function handleButtonClick(
   elementInfo: ElementPositionMeta,
   parent: HTMLDivElement,
   submitButton: HTMLButtonElement,
+  handleSubmitShortcut: (event: KeyboardEvent) => void,
 ) {
   e.preventDefault();
   e.stopPropagation();
@@ -183,7 +194,11 @@ async function handleButtonClick(
   });
 
   if (data.id) {
-    document.body.removeChild(parent);
+    if (parent.parentNode) {
+      parent.parentNode.removeChild(parent);
+    }
+    // Clean up keyboard listener
+    input.removeEventListener('keydown', handleSubmitShortcut);
     // Don't re-add the listener - go back to normal mode
     // User needs to click the widget again to enter comment mode
     await renderAllIssues();

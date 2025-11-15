@@ -47,110 +47,57 @@ const openSettingsDialog = () => {
   }
 
   const dialog = document.createElement("div");
-  dialog.style.position = "fixed";
-  dialog.style.top = "50%";
-  dialog.style.left = "50%";
-  dialog.style.transform = "translate(-50%, -50%)";
-  dialog.style.zIndex = "10001";
-  dialog.style.backgroundColor = "white";
-  dialog.style.borderRadius = "12px";
-  dialog.style.boxShadow = "0 8px 24px rgba(0, 0, 0, 0.15)";
-  dialog.style.padding = "24px";
-  dialog.style.minWidth = "320px";
-  dialog.style.maxWidth = "400px";
+  dialog.className = "opencomments-settings-dialog";
 
   const title = document.createElement("h2");
+  title.className = "opencomments-settings-dialog-title";
   title.textContent = "Settings";
-  title.style.margin = "0 0 20px 0";
-  title.style.fontSize = "20px";
-  title.style.fontWeight = "600";
-  title.style.color = "#333";
 
   const form = document.createElement("div");
-  form.style.display = "flex";
-  form.style.flexDirection = "column";
-  form.style.gap = "16px";
+  form.className = "opencomments-settings-form";
 
   // Name input
   const nameLabel = document.createElement("label");
+  nameLabel.className = "opencomments-settings-label";
   nameLabel.textContent = "Your Name";
-  nameLabel.style.fontSize = "14px";
-  nameLabel.style.fontWeight = "500";
-  nameLabel.style.color = "#555";
-  nameLabel.style.marginBottom = "4px";
 
   const nameInput = document.createElement("input");
   nameInput.type = "text";
+  nameInput.className = "opencomments-settings-input";
   nameInput.placeholder = "Enter your name";
   // Load from localStorage if available
   const storedSettings = loadSettings();
   nameInput.value = storedSettings?.name || "";
-  nameInput.style.padding = "10px";
-  nameInput.style.border = "1px solid #ddd";
-  nameInput.style.borderRadius = "6px";
-  nameInput.style.fontSize = "14px";
-  nameInput.style.fontFamily = "inherit";
-  nameInput.style.width = "100%";
-  nameInput.style.boxSizing = "border-box";
 
   const nameContainer = document.createElement("div");
-  nameContainer.style.display = "flex";
-  nameContainer.style.flexDirection = "column";
+  nameContainer.className = "opencomments-settings-input-container";
   nameContainer.appendChild(nameLabel);
   nameContainer.appendChild(nameInput);
 
   // Env input
   const envLabel = document.createElement("label");
+  envLabel.className = "opencomments-settings-label";
   envLabel.textContent = "Environment";
-  envLabel.style.fontSize = "14px";
-  envLabel.style.fontWeight = "500";
-  envLabel.style.color = "#555";
-  envLabel.style.marginBottom = "4px";
 
   const envInput = document.createElement("input");
   envInput.type = "text";
+  envInput.className = "opencomments-settings-input";
   envInput.placeholder = "e.g., production, staging, dev";
   // Load from localStorage if available
   envInput.value = storedSettings?.env || "";
-  envInput.style.padding = "10px";
-  envInput.style.border = "1px solid #ddd";
-  envInput.style.borderRadius = "6px";
-  envInput.style.fontSize = "14px";
-  envInput.style.fontFamily = "inherit";
-  envInput.style.width = "100%";
-  envInput.style.boxSizing = "border-box";
 
   const envContainer = document.createElement("div");
-  envContainer.style.display = "flex";
-  envContainer.style.flexDirection = "column";
+  envContainer.className = "opencomments-settings-input-container";
   envContainer.appendChild(envLabel);
   envContainer.appendChild(envInput);
 
   // Button container
   const buttonContainer = document.createElement("div");
-  buttonContainer.style.display = "flex";
-  buttonContainer.style.gap = "8px";
-  buttonContainer.style.marginTop = "8px";
+  buttonContainer.className = "opencomments-settings-button-container";
 
   const saveButton = document.createElement("button");
+  saveButton.className = "opencomments-settings-button--save";
   saveButton.textContent = "Save";
-  saveButton.style.flex = "1";
-  saveButton.style.padding = "12px 20px";
-  saveButton.style.borderRadius = "6px";
-  saveButton.style.border = "none";
-  saveButton.style.backgroundColor = "#4caf50";
-  saveButton.style.color = "white";
-  saveButton.style.fontSize = "14px";
-  saveButton.style.fontWeight = "500";
-  saveButton.style.cursor = "pointer";
-  saveButton.style.transition = "background-color 0.2s";
-
-  saveButton.onmouseenter = () => {
-    saveButton.style.backgroundColor = "#45a049";
-  };
-  saveButton.onmouseleave = () => {
-    saveButton.style.backgroundColor = "#4caf50";
-  };
 
   saveButton.onclick = (e) => {
     e.preventDefault();
@@ -174,22 +121,8 @@ const openSettingsDialog = () => {
   };
 
   const cancelButton = document.createElement("button");
+  cancelButton.className = "opencomments-settings-button--cancel";
   cancelButton.textContent = "Cancel";
-  cancelButton.style.padding = "12px 20px";
-  cancelButton.style.borderRadius = "6px";
-  cancelButton.style.border = "1px solid #ddd";
-  cancelButton.style.backgroundColor = "white";
-  cancelButton.style.color = "#333";
-  cancelButton.style.fontSize = "14px";
-  cancelButton.style.cursor = "pointer";
-  cancelButton.style.transition = "background-color 0.2s";
-
-  cancelButton.onmouseenter = () => {
-    cancelButton.style.backgroundColor = "#f5f5f5";
-  };
-  cancelButton.onmouseleave = () => {
-    cancelButton.style.backgroundColor = "white";
-  };
 
   cancelButton.onclick = (e) => {
     e.preventDefault();
@@ -213,11 +146,25 @@ const openSettingsDialog = () => {
       dialog.remove();
       widgetDialog = null;
       document.removeEventListener('click', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    }
+  };
+
+  // Add Escape key handler to close settings dialog
+  const handleEscape = (event: KeyboardEvent) => {
+    if (event.key === "Escape" || event.keyCode === 27) {
+      event.preventDefault();
+      event.stopPropagation();
+      dialog.remove();
+      widgetDialog = null;
+      document.removeEventListener('click', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
     }
   };
 
   setTimeout(() => {
     document.addEventListener('click', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
   }, 0);
 
   document.body.appendChild(dialog);
@@ -302,43 +249,15 @@ const createRefreshIcon = () => {
 
 export const createWidget = () => {
   const widget = document.createElement("div");
-  widget.style.position = "fixed";
-  widget.style.top = "24px";
-  widget.style.left = "24px";
-  widget.style.display = "flex";
-  widget.style.flexDirection = "column";
-  widget.style.gap = "8px";
-  widget.style.zIndex = "9998";
+  widget.className = "opencomments-widget";
 
   // Comment button (top)
   const commentButton = document.createElement("button");
-  commentButton.style.width = "48px";
-  commentButton.style.height = "48px";
-  commentButton.style.borderRadius = "50%";
-  commentButton.style.border = "2px solid #4caf50";
-  commentButton.style.backgroundColor = "#4caf50";
-  commentButton.style.color = "white";
-  commentButton.style.display = "flex";
-  commentButton.style.alignItems = "center";
-  commentButton.style.justifyContent = "center";
-  commentButton.style.cursor = "pointer";
-  commentButton.style.boxShadow = "0 4px 12px rgba(76, 175, 80, 0.3)";
-  commentButton.style.transition = "transform 0.2s, box-shadow 0.2s";
-  commentButton.style.padding = "0";
-  commentButton.style.margin = "0";
+  commentButton.className = "opencomments-widget-button opencomments-widget-button--comment";
   
   const commentIcon = createCommentIcon();
+  commentIcon.setAttribute("class", "opencomments-widget-icon");
   commentButton.appendChild(commentIcon);
-
-  commentButton.onmouseenter = () => {
-    commentButton.style.transform = "scale(1.1)";
-    commentButton.style.boxShadow = "0 6px 16px rgba(76, 175, 80, 0.4)";
-  };
-
-  commentButton.onmouseleave = () => {
-    commentButton.style.transform = "scale(1)";
-    commentButton.style.boxShadow = "0 4px 12px rgba(76, 175, 80, 0.3)";
-  };
 
   commentButton.onclick = (e) => {
     e.stopPropagation();
@@ -357,35 +276,11 @@ export const createWidget = () => {
 
   // Settings button (bottom)
   const settingsButton = document.createElement("button");
-  settingsButton.style.width = "48px";
-  settingsButton.style.height = "48px";
-  settingsButton.style.borderRadius = "50%";
-  settingsButton.style.border = "2px solid #6b7280";
-  settingsButton.style.backgroundColor = "white";
-  settingsButton.style.color = "#6b7280";
-  settingsButton.style.display = "flex";
-  settingsButton.style.alignItems = "center";
-  settingsButton.style.justifyContent = "center";
-  settingsButton.style.cursor = "pointer";
-  settingsButton.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.1)";
-  settingsButton.style.transition = "transform 0.2s, box-shadow 0.2s, background-color 0.2s";
-  settingsButton.style.padding = "0";
-  settingsButton.style.margin = "0";
+  settingsButton.className = "opencomments-widget-button opencomments-widget-button--settings";
   
   const settingsIcon = createSettingsIcon();
+  settingsIcon.setAttribute("class", "opencomments-widget-icon");
   settingsButton.appendChild(settingsIcon);
-
-  settingsButton.onmouseenter = () => {
-    settingsButton.style.transform = "scale(1.1)";
-    settingsButton.style.boxShadow = "0 6px 16px rgba(0, 0, 0, 0.15)";
-    settingsButton.style.backgroundColor = "#f3f4f6";
-  };
-
-  settingsButton.onmouseleave = () => {
-    settingsButton.style.transform = "scale(1)";
-    settingsButton.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.1)";
-    settingsButton.style.backgroundColor = "white";
-  };
 
   settingsButton.onclick = (e) => {
     e.stopPropagation();
@@ -394,43 +289,17 @@ export const createWidget = () => {
 
   // Refresh button (bottom)
   const refreshButton = document.createElement("button");
-  refreshButton.style.width = "48px";
-  refreshButton.style.height = "48px";
-  refreshButton.style.borderRadius = "50%";
-  refreshButton.style.border = "2px solid #3b82f6";
-  refreshButton.style.backgroundColor = "white";
-  refreshButton.style.color = "#3b82f6";
-  refreshButton.style.display = "flex";
-  refreshButton.style.alignItems = "center";
-  refreshButton.style.justifyContent = "center";
-  refreshButton.style.cursor = "pointer";
-  refreshButton.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.1)";
-  refreshButton.style.transition = "transform 0.2s, box-shadow 0.2s, background-color 0.2s";
-  refreshButton.style.padding = "0";
-  refreshButton.style.margin = "0";
+  refreshButton.className = "opencomments-widget-button opencomments-widget-button--refresh";
   
   const refreshIcon = createRefreshIcon();
+  refreshIcon.setAttribute("class", "opencomments-widget-icon");
   refreshButton.appendChild(refreshIcon);
-
-  refreshButton.onmouseenter = () => {
-    refreshButton.style.transform = "scale(1.1)";
-    refreshButton.style.boxShadow = "0 6px 16px rgba(59, 130, 246, 0.2)";
-    refreshButton.style.backgroundColor = "#eff6ff";
-  };
-
-  refreshButton.onmouseleave = () => {
-    refreshButton.style.transform = "scale(1)";
-    refreshButton.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.1)";
-    refreshButton.style.backgroundColor = "white";
-  };
 
   refreshButton.onclick = async (e) => {
     e.stopPropagation();
     
     // Disable button during refresh
     refreshButton.disabled = true;
-    refreshButton.style.opacity = "0.6";
-    refreshButton.style.cursor = "wait";
     
     // Clear existing icons
     clearAllIcons();
@@ -443,8 +312,6 @@ export const createWidget = () => {
     } finally {
       // Re-enable button
       refreshButton.disabled = false;
-      refreshButton.style.opacity = "1";
-      refreshButton.style.cursor = "pointer";
     }
   };
 
