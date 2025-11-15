@@ -1,20 +1,25 @@
 {
   "name": "@opencomments/package",
+  "version": "0.1.0",
+  "description": "OpenComments - Contextual feedback widget for any website",
+  "main": "dist/opencomments.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -p tsconfig.build.json && vite build",
+    "preview": "vite preview"
+  },
   "dependencies": {
     "@opencomments/types": "workspace:*",
     "html2canvas": "^1.4.1"
   },
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
-  },
   "devDependencies": {
     "typescript": "~5.9.3",
-    "vite": "npm:rolldown-vite@7.1.14"
+    "vite": "npm:rolldown-vite@7.1.14",
+    "@types/node": "^22.0.0"
   },
   "overrides": {
     "vite": "npm:rolldown-vite@7.1.14"

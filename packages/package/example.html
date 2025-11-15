@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenComments Example</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+    h1 {
+      color: #333;
+    }
+    .example-section {
+      margin: 30px 0;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      cursor: pointer;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <h1>OpenComments Example</h1>
+  
+  <div class="example-section">
+    <h2>Basic Usage</h2>
+    <p>OpenComments will automatically initialize when the script loads.</p>
+    <p>Look for the widget in the top-left corner of the page.</p>
+  </div>
+
+  <div class="example-section">
+    <h2>Custom Configuration</h2>
+    <p>You can configure the API URL and initialization:</p>
+    <pre><code>
+&lt;script&gt;
+  // Configure before script loads
+  window.OpenComments = {
+    config: {
+      apiUrl: 'https://api.example.com',
+      autoInit: true
+    }
+  };
+&lt;/script&gt;
+&lt;script src="dist/opencomments.js"&gt;&lt;/script&gt;
+    </code></pre>
+  </div>
+
+  <div class="example-section">
+    <h2>Manual Initialization</h2>
+    <p>Or initialize manually:</p>
+    <pre><code>
+&lt;script src="dist/opencomments.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  OpenComments.init({
+    apiUrl: 'https://api.example.com'
+  });
+&lt;/script&gt;
+    </code></pre>
+  </div>
+
+  <!-- Load OpenComments -->
+  <script>
+    // Example: Configure API URL
+    window.__OPENCOMMENTS_API_URL__ = 'http://localhost:3001';
+  </script>
+  <script src="./dist/opencomments.js"></script>
+</body>
+</html>
+

@@ -1,6 +1,5 @@
 import { createCommentForm } from "../ui/comment-form";
 import { getXPath } from "./get-xpath";
-import { getUserSettings } from "../ui/widget";
 
 // Create a custom comment icon cursor
 const createCommentCursor = (): string => {
@@ -41,11 +40,12 @@ const handleMouseDown = (e: MouseEvent) => {
     return;
   }
 
-  const selector = [];
+  const selector: string[] = [];
 
   if (clickElement?.id) selector.push(`#id:${clickElement.id}`);
-  if (clickElement?.class) selector.push(`class:${clickElement.class}`);
-  if (clickElement) selector.push(getXPath(clickElement));
+  if (clickElement?.className) selector.push(`class:${clickElement.className}`);
+  const xpath = getXPath(clickElement);
+  if (xpath) selector.push(xpath);
   const relativeX = e.clientX - clickElement.getBoundingClientRect().left;
   const relativeY = e.clientY - clickElement.getBoundingClientRect().top;
 
@@ -149,6 +149,8 @@ export const removeCreateCommentFormListener = () => {
   document.removeEventListener("keydown", handleEscapeKey);
 };
 
-window.comments = {
-  handleMouseDown,
-};
+if (typeof window !== "undefined") {
+  (window as any).comments = {
+    handleMouseDown,
+  };
+}

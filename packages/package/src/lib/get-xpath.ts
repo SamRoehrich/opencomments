@@ -1,24 +1,30 @@
-export function getXPath(element: EventTarget) {
+export function getXPath(element: EventTarget | null): string | null {
+  if (!element || !(element instanceof Element)) {
+    return null;
+  }
+  
   if (element.id) {
     return `//*[@id="${element.id}"]`;
   }
 
   const paths = [];
-  for (; element && element.nodeType === 1; element = element.parentNode) {
+  let currentElement: Element | null = element;
+  for (; currentElement && currentElement.nodeType === 1; currentElement = currentElement.parentElement) {
     let index = 0;
     for (
-      let sibling = element.previousSibling;
+      let sibling = currentElement.previousSibling;
       sibling;
       sibling = sibling.previousSibling
     ) {
       if (
         sibling.nodeType === Node.ELEMENT_NODE &&
-        sibling.tagName === element.tagName
+        sibling instanceof Element &&
+        sibling.tagName === currentElement.tagName
       ) {
         index++;
       }
     }
-    const tagName = element.tagName.toLowerCase();
+    const tagName = currentElement.tagName.toLowerCase();
     const pathIndex = index ? `[${index + 1}]` : "";
     paths.unshift(`${tagName}${pathIndex}`);
   }
