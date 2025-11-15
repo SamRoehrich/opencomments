@@ -11,14 +11,6 @@ export function createCommentsRouter(env?: Env) {
 // Get all comments for an issue
 comments.get("/issue/:issueId", async (c) => {
   const issueId = c.req.param("issueId");
-  
-  // Prevent Cloudflare caching
-  c.header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
-  c.header("Pragma", "no-cache");
-  c.header("Expires", "0");
-  c.header("CDN-Cache-Control", "no-store");
-  c.header("Cloudflare-CDN-Cache-Control", "no-store");
-  
   const comments = await sql`
     SELECT id, comment, issue_id, user_id, created_at, updated_at
     FROM comment
