@@ -1,6 +1,15 @@
 import { createCommentForm } from "../ui/comment-form";
 import { getXPath } from "./get-xpath";
-import { getUserSettings } from "../ui/widget";
+
+// Create a custom comment icon cursor
+const createCommentCursor = (): string => {
+  // Create an SVG for the comment icon cursor (simplified for better cursor support)
+  const svg = `<svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" fill="#000" stroke="#fff" stroke-width="0.5"/></svg>`;
+  
+  // Convert SVG to data URL
+  const encodedSvg = encodeURIComponent(svg);
+  return `url("data:image/svg+xml,${encodedSvg}") 10 10, pointer`;
+};
 
 const handleMouseDown = (e: MouseEvent) => {
   // Prevent the click from reaching underlying elements
@@ -31,11 +40,12 @@ const handleMouseDown = (e: MouseEvent) => {
     return;
   }
 
-  const selector = [];
+  const selector: string[] = [];
 
   if (clickElement?.id) selector.push(`#id:${clickElement.id}`);
-  if (clickElement?.class) selector.push(`class:${clickElement.class}`);
-  if (clickElement) selector.push(getXPath(clickElement));
+  if (clickElement?.className) selector.push(`class:${clickElement.className}`);
+  const xpath = getXPath(clickElement);
+  if (xpath) selector.push(xpath);
   const relativeX = e.clientX - clickElement.getBoundingClientRect().left;
   const relativeY = e.clientY - clickElement.getBoundingClientRect().top;
 
@@ -63,6 +73,13 @@ const handleMouseDown = (e: MouseEvent) => {
 // Overlay element to block all clicks
 let commentModeOverlay: HTMLElement | null = null;
 
+// Escape key handler to exit comment mode
+const handleEscapeKey = (e: KeyboardEvent) => {
+  if (e.key === "Escape" && commentModeOverlay) {
+    removeCreateCommentFormListener();
+  }
+};
+
 const createOverlay = () => {
   const overlay = document.createElement("div");
   overlay.style.position = "fixed";
@@ -71,7 +88,7 @@ const createOverlay = () => {
   overlay.style.width = "100%";
   overlay.style.height = "100%";
   overlay.style.zIndex = "9997"; // Below widget (9998) but above everything else
-  overlay.style.cursor = "pointer";
+  overlay.style.cursor = createCommentCursor();
   overlay.style.backgroundColor = "transparent";
   overlay.style.pointerEvents = "auto";
   
@@ -111,8 +128,11 @@ export const addCreateCommentFormListener = () => {
   commentModeOverlay = createOverlay();
   document.body.appendChild(commentModeOverlay);
   
-  // Change cursor to pointer to indicate comment mode
-  document.body.style.cursor = "pointer";
+  // Change cursor to comment icon to indicate comment mode
+  document.body.style.cursor = createCommentCursor();
+  
+  // Add Escape key listener to exit comment mode
+  document.addEventListener("keydown", handleEscapeKey);
 };
 
 export const removeCreateCommentFormListener = () => {
@@ -124,8 +144,13 @@ export const removeCreateCommentFormListener = () => {
   
   // Reset cursor to normal
   document.body.style.cursor = "default";
+  
+  // Remove Escape key listener
+  document.removeEventListener("keydown", handleEscapeKey);
 };
 
-window.comments = {
-  handleMouseDown,
-};
+if (typeof window !== "undefined") {
+  (window as any).comments = {
+    handleMouseDown,
+  };
+}

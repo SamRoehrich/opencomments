@@ -1,6 +1,5 @@
 import { createIssue } from "../api/comments";
 import {
-  addCreateCommentFormListener,
   removeCreateCommentFormListener,
 } from "../lib/globals";
 import { renderAllIssues } from "../lib/render-all-issues";

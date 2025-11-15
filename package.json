@@ -4,6 +4,14 @@
   "type": "module",
   "workspaces": [
     "packages/*"
-  ]
+  ],
+  "scripts": {
+    "dev": "concurrently \"bun run --cwd packages/backend dev\" \"bun run --cwd packages/frontend dev\" \"bun run --cwd packages/package dev\" --names \"backend,frontend,package\" --prefix-colors \"blue,green,yellow\""
+  },
+  "dependencies": {
+    "sst": "3.17.23"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
 }
-
