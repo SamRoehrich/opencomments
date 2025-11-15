@@ -1,8 +1,12 @@
-import { sql } from "bun";
+import { createDb, createSql } from "../../lib/db";
 import { Hono } from "hono";
 import type { IssueInsert } from "@opencomments/types";
+import type { Env } from "../../types";
 
-const issues = new Hono();
+export function createIssuesRouter(env?: Env) {
+  const issues = new Hono();
+  const db = createDb(env);
+  const sql = createSql(db);
 
 issues.post("/create", async (c) => {
   const issue = (await c.req.json()) as IssueInsert;
@@ -72,4 +76,5 @@ issues.get("/:id", async (c) => {
   return c.json(issue);
 });
 
-export { issues };
+  return issues;
+}

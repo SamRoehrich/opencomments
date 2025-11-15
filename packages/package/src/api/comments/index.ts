@@ -5,7 +5,7 @@ function getApiBaseUrl(): string {
   if (typeof window !== "undefined" && (window as any).__OPENCOMMENTS_API_URL__) {
     return (window as any).__OPENCOMMENTS_API_URL__;
   }
-  return "http://localhost:3001";
+  return "https://api.opencomments.io";
 }
 
 export const getAllIssues = async (envId?: string): Promise<Issue[]> => {

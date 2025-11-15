@@ -1,0 +1,82 @@
+name = "opencomments-backend"
+main = "index.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+# Hyperdrive configuration for PlanetScale PostgreSQL
+# 
+# To set up Hyperdrive:
+# 1. Run: npx wrangler hyperdrive create opencomments-db --connection-string="postgresql://..."
+# 2. Copy the Hyperdrive ID from the output
+# 3. Update the id field below
+# 4. See HYPERDRIVE_SETUP.md for detailed instructions
+#
+[[hyperdrive]]
+binding = "HYPERDRIVE"
+id = "0305f26cf30d4ef4bd93bc5fb5678f3f"
+
+[observability]
+enabled = false
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+persist = true
+invocation_logs = true
+
+[observability.traces]
+enabled = false
+persist = true
+head_sampling_rate = 1
+
+# Entry point configuration
+# The main file exports: export default { fetch: app.fetch }
+# This is the correct format for Cloudflare Workers
+
+# Build Configuration
+# 
+# IMPORTANT: This is a monorepo workspace. Cloudflare needs to install from ROOT.
+#
+# For Cloudflare Workers Dashboard → Settings → Builds:
+# - Root directory: Leave EMPTY (repository root)
+# - Build command: bun install
+# - Deploy command: (leave empty)
+#
+# For GitHub Actions: Dependencies are installed from root, then wrangler deploy runs from packages/backend
+# This ensures workspace dependencies (@opencomments/types) are resolved.
+# Wrangler will automatically bundle TypeScript using esbuild.
+
+[env.production]
+name = "opencomments-backend"
+main = "index.ts"
+# Custom domain: api.opencomments.io
+# Configure the domain in Cloudflare Dashboard → Workers & Pages → opencomments-backend → Settings → Domains
+# Or use: wrangler routes list to see configured routes
+
+[[env.production.hyperdrive]]
+binding = "HYPERDRIVE"
+id = "0305f26cf30d4ef4bd93bc5fb5678f3f"
+
+[env.staging]
+name = "opencomments-backend-staging"
+main = "index.ts"
+
+[[env.staging.hyperdrive]]
+binding = "HYPERDRIVE"
+id = "0305f26cf30d4ef4bd93bc5fb5678f3f"
+
+# Database: Using PlanetScale PostgreSQL
+# PlanetScale now supports native PostgreSQL connections.
+# The code uses pg (PostgreSQL client) which works with Cloudflare Workers via TCP connections.
+# 
+# Note: Database migrations should be run separately, not in the Worker.
+# Run migrations manually or via a separate migration process.
+
+# Environment variables will be set via GitHub Secrets:
+# - DATABASE_URL (PlanetScale PostgreSQL connection string)
+# - BETTER_AUTH_SECRET
+# - BETTER_AUTH_URL
+# - GITHUB_CLIENT_ID
+# - GITHUB_CLIENT_SECRET
+

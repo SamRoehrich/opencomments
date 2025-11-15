@@ -1,12 +1,16 @@
 import { Hono } from "hono";
-import { issues } from "./issues";
-import { authHandler } from "./auth";
-import { comments } from "./comments";
+import { createIssuesRouter } from "./issues";
+import { createAuthHandler } from "./auth";
+import { createCommentsRouter } from "./comments";
+import type { Env } from "../types";
 
-const api = new Hono();
+// API factory function that accepts env for Cloudflare Workers
+export function createApi(env?: Env) {
+  const api = new Hono();
 
-api.route("/issues", issues);
-api.route("/auth", authHandler);
-api.route("/comments", comments);
+  api.route("/issues", createIssuesRouter(env));
+  api.route("/auth", createAuthHandler(env));
+  api.route("/comments", createCommentsRouter(env));
 
-export { api };
+  return api;
+}
