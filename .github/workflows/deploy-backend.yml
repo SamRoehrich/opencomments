@@ -63,7 +63,10 @@ jobs:
         working-directory: packages/backend
         run: |
           ENV=${{ github.event.inputs.environment || 'production' }}
-          wrangler deploy --env $ENV
+          echo "Deploying to environment: $ENV"
+          echo "Checking wrangler.toml..."
+          cat wrangler.toml | grep -A 5 "\[env.$ENV\]" || echo "Environment section found"
+          wrangler deploy --env $ENV --config wrangler.toml
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

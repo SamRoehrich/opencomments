@@ -49,6 +49,10 @@ head_sampling_rate = 1
 
 [env.production]
 name = "opencomments-backend"
+main = "index.ts"
+# Custom domain: api.opencomments.io
+# Configure the domain in Cloudflare Dashboard → Workers & Pages → opencomments-backend → Settings → Domains
+# Or use: wrangler routes list to see configured routes
 
 [[env.production.hyperdrive]]
 binding = "HYPERDRIVE"
@@ -56,6 +60,7 @@ id = "0305f26cf30d4ef4bd93bc5fb5678f3f"
 
 [env.staging]
 name = "opencomments-backend-staging"
+main = "index.ts"
 
 [[env.staging.hyperdrive]]
 binding = "HYPERDRIVE"
