@@ -1,0 +1,75 @@
+name: Build and Deploy Package to R2
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'packages/package/**'
+      - '.github/workflows/build-and-deploy-package.yml'
+  pull_request:
+    branches:
+      - main
+      - master
+    paths:
+      - 'packages/package/**'
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build package
+        working-directory: packages/package
+        run: bun run build
+
+      - name: Configure AWS CLI for R2
+        run: |
+          mkdir -p ~/.aws
+          echo "[default]" > ~/.aws/credentials
+          echo "aws_access_key_id = ${{ secrets.R2_ACCESS_KEY_ID }}" >> ~/.aws/credentials
+          echo "aws_secret_access_key = ${{ secrets.R2_SECRET_ACCESS_KEY }}" >> ~/.aws/credentials
+          echo "[default]" > ~/.aws/config
+          echo "region = auto" >> ~/.aws/config
+
+      - name: Upload to Cloudflare R2
+        env:
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+        run: |
+          # Install AWS CLI if not available
+          if ! command -v aws &> /dev/null; then
+            pip install awscli
+          fi
+          
+          # Upload files to R2 using S3-compatible API
+          cd packages/package/dist
+          
+          # Upload each file individually
+          for file in *; do
+            if [ -f "$file" ]; then
+              aws s3 cp "$file" "s3://${R2_BUCKET}/${file}" \
+                --endpoint-url="${R2_ENDPOINT}" \
+                --region auto
+            fi
+          done
+
+      - name: Output deployment info
+        run: |
+          echo "✅ Package built and deployed to R2"
+          echo "Bucket: ${{ secrets.R2_BUCKET }}"
+          echo "Files uploaded from packages/package/dist/"
+
