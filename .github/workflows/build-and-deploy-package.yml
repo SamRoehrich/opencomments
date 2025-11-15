@@ -21,6 +21,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Fetch all history for git describe
+          fetch-tags: true  # Fetch all tags for version detection
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -31,36 +32,42 @@ jobs:
         id: version
         shell: bash
         run: |
-          # Read version from package.json
-          BASE_VERSION=$(node -p "require('./packages/package/package.json').version")
+          # Fetch all tags from remote
+          git fetch --tags --force
           
-          # Get the latest tag or use base version
-          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          # Get all version tags and find the latest
+          LATEST_TAG=$(git tag --list "v*" | grep -E "^v[0-9]+\.[0-9]+\.[0-9]+$" | sort -V | tail -1)
+          
+          echo "All version tags:"
+          git tag --list "v*" | grep -E "^v[0-9]+\.[0-9]+\.[0-9]+$" | sort -V || echo "No tags found"
           
           if [ -z "$LATEST_TAG" ]; then
-            # No tags exist, use package.json version
+            # No tags exist, use package.json version as starting point
+            BASE_VERSION=$(node -p "require('./packages/package/package.json').version")
             VERSION_TAG="v${BASE_VERSION}"
+            echo "No existing tags found, using package.json version: ${VERSION_TAG}"
           else
-            # Extract version from latest tag (remove 'v' prefix if present)
+            # Extract version from latest tag (remove 'v' prefix)
             LATEST_VERSION=$(echo "$LATEST_TAG" | sed 's/^v//')
             
-            # Compare with package.json version
-            if [ "$BASE_VERSION" != "$LATEST_VERSION" ]; then
-              # Package.json version changed, use it
-              VERSION_TAG="v${BASE_VERSION}"
-            else
-              # Increment patch version
-              IFS='.' read -r -a VERSION_PARTS <<< "$LATEST_VERSION"
-              MAJOR=${VERSION_PARTS[0]}
-              MINOR=${VERSION_PARTS[1]}
-              PATCH=${VERSION_PARTS[2]}
-              NEW_PATCH=$((PATCH + 1))
-              VERSION_TAG="v${MAJOR}.${MINOR}.${NEW_PATCH}"
+            # Increment patch version from the latest tag
+            IFS='.' read -r -a VERSION_PARTS <<< "$LATEST_VERSION"
+            MAJOR=${VERSION_PARTS[0]}
+            MINOR=${VERSION_PARTS[1]}
+            PATCH=${VERSION_PARTS[2]}
+            
+            # Ensure PATCH is a number (handle edge cases)
+            if [ -z "$PATCH" ] || ! [[ "$PATCH" =~ ^[0-9]+$ ]]; then
+              PATCH=0
             fi
+            
+            NEW_PATCH=$((PATCH + 1))
+            VERSION_TAG="v${MAJOR}.${MINOR}.${NEW_PATCH}"
+            echo "Latest tag: ${LATEST_TAG}, incrementing to: ${VERSION_TAG}"
           fi
           
           echo "version=${VERSION_TAG}" >> $GITHUB_OUTPUT
-          echo "Generated version: ${VERSION_TAG}"
+          echo "✅ Generated version: ${VERSION_TAG}"
 
       - name: Install dependencies
         run: bun install
@@ -122,23 +129,39 @@ jobs:
             pip install awscli
           fi
           
+          # Debug: Print version info
+          echo "Version tag: ${VERSION_TAG}"
+          echo "R2 Bucket: ${R2_BUCKET}"
+          echo "R2 Endpoint: ${R2_ENDPOINT}"
+          
           # Upload files to R2 using S3-compatible API with version tag
           cd packages/package/dist
+          
+          # List files to upload
+          echo "Files to upload:"
+          ls -la
           
           # Upload each file to versioned path
           for file in *; do
             if [ -f "$file" ]; then
-              # Upload to versioned path
-              aws s3 cp "$file" "s3://${R2_BUCKET}/${VERSION_TAG}/${file}" \
+              VERSIONED_PATH="s3://${R2_BUCKET}/${VERSION_TAG}/${file}"
+              LATEST_PATH="s3://${R2_BUCKET}/latest/${file}"
+              
+              echo "Uploading ${file} to ${VERSIONED_PATH}"
+              aws s3 cp "$file" "${VERSIONED_PATH}" \
                 --endpoint-url="${R2_ENDPOINT}" \
                 --region auto
               
-              # Also upload to latest path
-              aws s3 cp "$file" "s3://${R2_BUCKET}/latest/${file}" \
+              echo "Uploading ${file} to ${LATEST_PATH}"
+              aws s3 cp "$file" "${LATEST_PATH}" \
                 --endpoint-url="${R2_ENDPOINT}" \
                 --region auto
             fi
           done
+          
+          echo "✅ Upload complete"
+          echo "Versioned URL: ${R2_ENDPOINT}/${VERSION_TAG}/"
+          echo "Latest URL: ${R2_ENDPOINT}/latest/"
 
       - name: Output deployment info
         run: |

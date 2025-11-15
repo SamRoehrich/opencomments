@@ -28,6 +28,13 @@ issues.post("/create", async (c) => {
 issues.get("/", async (c) => {
   const envId = c.req.query("env");
   
+  // Prevent Cloudflare caching
+  c.header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+  c.header("Pragma", "no-cache");
+  c.header("Expires", "0");
+  c.header("CDN-Cache-Control", "no-store");
+  c.header("Cloudflare-CDN-Cache-Control", "no-store");
+  
   if (envId) {
     const issues = await sql`
       SELECT 
@@ -64,6 +71,14 @@ issues.post("/resolve", async (c) => {
 
 issues.get("/:id", async (c) => {
   const id = c.req.param("id");
+  
+  // Prevent Cloudflare caching
+  c.header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+  c.header("Pragma", "no-cache");
+  c.header("Expires", "0");
+  c.header("CDN-Cache-Control", "no-store");
+  c.header("Cloudflare-CDN-Cache-Control", "no-store");
+  
   const issue = await sql`
     SELECT 
       id, url, description, created_at, resolved, selector, 

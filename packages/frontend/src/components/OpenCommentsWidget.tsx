@@ -1,17 +1,29 @@
 import { useEffect } from "react";
 
 interface OpenCommentsWidgetProps {
-  scriptUrl?: string;
+  version?: string;
   apiUrl?: string;
 }
 
 export function OpenCommentsWidget({ 
-  scriptUrl = "https://pub-2ec8a6bf83b340db84e85806504487f7.r2.dev/opencomments.js",
+  version = "v0.1.1",
   apiUrl 
 }: OpenCommentsWidgetProps) {
   useEffect(() => {
     // Only run on client side after hydration
     if (typeof window === "undefined") return;
+
+    const cssUrl = `https://opencomments.io/latest/package.css`;
+    const scriptUrl = `https://opencomments.io/latest/opencomments.js`;
+
+    // Check if CSS is already loaded
+    const existingLink = document.querySelector(`link[href="${cssUrl}"]`);
+    if (!existingLink) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = cssUrl;
+      document.head.appendChild(link);
+    }
 
     // Check if script is already loaded
     const existingScript = document.querySelector(`script[src="${scriptUrl}"]`);
@@ -63,7 +75,7 @@ export function OpenCommentsWidget({
       // For most cases, you'd want to keep the widget loaded
       // script.remove();
     };
-  }, [scriptUrl, apiUrl]);
+  }, [version, apiUrl]);
 
   // This component doesn't render anything
   return null;
