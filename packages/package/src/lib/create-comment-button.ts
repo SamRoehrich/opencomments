@@ -3,6 +3,25 @@ import { getIssue } from "../api/comments";
 import { comment } from "../ui/comment";
 import { getElementByXPath } from "./get-element-by-xpath";
 
+// Create comment icon SVG (same as widget)
+const createCommentIconSVG = () => {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("width", "14");
+  svg.setAttribute("height", "14");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("fill", "none");
+  svg.setAttribute("stroke", "currentColor");
+  svg.setAttribute("stroke-width", "2");
+  svg.setAttribute("stroke-linecap", "round");
+  svg.setAttribute("stroke-linejoin", "round");
+  
+  const path1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path1.setAttribute("d", "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z");
+  svg.appendChild(path1);
+  
+  return svg;
+};
+
 // Store resize handler to avoid multiple listeners
 let resizeHandler: (() => void) | null = null;
 const iconElements = new Map<number, { element: HTMLElement; issue: Issue; parent: HTMLElement }>();
@@ -102,13 +121,11 @@ export const createCommentButton = (issue: Issue) => {
     
     const dialogEl = document.createElement("div");
     dialogEl.id = issue.id.toString();
-    dialogEl.style.height = "16px";
-    dialogEl.style.position = "absolute";
-    dialogEl.style.width = "16px";
-    dialogEl.style.borderRadius = "100px";
-    dialogEl.style.backgroundColor = "red";
-    dialogEl.style.zIndex = "9999";
-    dialogEl.style.cursor = "pointer";
+    dialogEl.className = "opencomments-comment-icon";
+    
+    // Create and append the comment icon SVG (same as widget)
+    const iconSvg = createCommentIconSVG();
+    dialogEl.appendChild(iconSvg);
 
     dialogEl.onclick = (e) => handleCommentIconClick(issue.id, e);
 
@@ -128,7 +145,11 @@ export const createCommentButton = (issue: Issue) => {
 async function handleCommentIconClick(id: number, e: MouseEvent) {
   e.stopPropagation(); // Prevent event bubbling
   const commentData = await getIssue(id);
-  const iconElement = e.target as HTMLElement;
+  
+  // Get the icon container (div), not the SVG
+  const iconElement = (e.target as HTMLElement).closest('.opencomments-comment-icon') as HTMLElement;
+  if (!iconElement) return;
+  
   const iconRect = iconElement.getBoundingClientRect();
   
   // Get icon position relative to viewport
