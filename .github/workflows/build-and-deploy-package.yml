@@ -73,8 +73,8 @@ jobs:
         run: |
           cd packages/package/dist
           tar -czf ../release-archive.tar.gz *
+          zip -r ../release-archive.zip *
           cd ../..
-          zip -r packages/package/release-archive.zip packages/package/dist/*
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
