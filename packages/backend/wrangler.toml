@@ -1,7 +1,38 @@
 name = "opencomments-backend"
 main = "index.ts"
-compatibility_date = "2024-01-01"
+compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
+
+# Hyperdrive configuration for PlanetScale PostgreSQL
+# 
+# To set up Hyperdrive:
+# 1. Run: npx wrangler hyperdrive create opencomments-db --connection-string="postgresql://..."
+# 2. Copy the Hyperdrive ID from the output
+# 3. Update the id field below
+# 4. See HYPERDRIVE_SETUP.md for detailed instructions
+#
+[[hyperdrive]]
+binding = "HYPERDRIVE"
+id = "0305f26cf30d4ef4bd93bc5fb5678f3f"
+
+[observability]
+enabled = false
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+persist = true
+invocation_logs = true
+
+[observability.traces]
+enabled = false
+persist = true
+head_sampling_rate = 1
+
+# Entry point configuration
+# The main file exports: export default { fetch: app.fetch }
+# This is the correct format for Cloudflare Workers
 
 # Build Configuration
 # 
@@ -19,8 +50,16 @@ compatibility_flags = ["nodejs_compat"]
 [env.production]
 name = "opencomments-backend"
 
+[[env.production.hyperdrive]]
+binding = "HYPERDRIVE"
+id = "0305f26cf30d4ef4bd93bc5fb5678f3f"
+
 [env.staging]
 name = "opencomments-backend-staging"
+
+[[env.staging.hyperdrive]]
+binding = "HYPERDRIVE"
+id = "0305f26cf30d4ef4bd93bc5fb5678f3f"
 
 # Database: Using PlanetScale PostgreSQL
 # PlanetScale now supports native PostgreSQL connections.

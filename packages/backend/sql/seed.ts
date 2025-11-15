@@ -1,7 +1,24 @@
-import { sql } from "bun";
-import { readdir } from "node:fs/promises";
-
+// Seed function - only runs in Bun runtime (local development)
+// Cloudflare Workers should not run migrations/seeds
 export const seed = async () => {
+  // Only run in Bun runtime
+  if (typeof Bun === "undefined") {
+    return; // Skip in Cloudflare Workers
+  }
+
+  // Access Bun.sql directly (Bun is a global, not a module)
+  const sql = (globalThis as any).Bun?.sql;
+  if (!sql) {
+    console.warn("Bun.sql not available");
+    return;
+  }
+
+  // Use dynamic import for node:fs to avoid bundling issues
+  const { readdir } = await import("node:fs/promises").catch(() => {
+    // Fallback if node:fs not available
+    return { readdir: async () => [] };
+  });
+
   await sql`
       CREATE TABLE IF NOT EXISTS issue (
           id SERIAL PRIMARY KEY,
@@ -20,9 +37,13 @@ export const seed = async () => {
       )
    `;
 
-  const migrations = await readdir(import.meta.dir + "/migrations");
-  for (const migration of migrations) {
-    await sql.file(import.meta.dir + "/migrations/" + migration);
-    console.log(`Applied migration: ${migration}`);
+  try {
+    const migrations = await readdir(import.meta.dir + "/migrations");
+    for (const migration of migrations) {
+      await sql.file(import.meta.dir + "/migrations/" + migration);
+      console.log(`Applied migration: ${migration}`);
+    }
+  } catch (error) {
+    console.warn("Could not read migrations directory:", error);
   }
 };
