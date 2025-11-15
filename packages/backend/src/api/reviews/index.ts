@@ -1,7 +1,8 @@
 import { createDb, createSql } from "../../lib/db";
 import { Hono } from "hono";
-import type { ReviewInsert, ReviewUpdate } from "@opencomments/types";
+import type { ReviewInsert, ReviewUpdate, Issue, Comment } from "@opencomments/types";
 import type { Env } from "../../types";
+import { generateReviewMarkdown, uploadReviewReportToS3 } from "../../lib/s3";
 
 export function createReviewsRouter(env?: Env) {
   const reviews = new Hono();
@@ -18,12 +19,49 @@ export function createReviewsRouter(env?: Env) {
       RETURNING id, name, description, created_at, updated_at, user_id, env_id
     `;
 
-    if (row) {
-      return c.json(row);
-    } else {
+    if (!row) {
       c.status(400);
       return c.json({ message: "Failed to create review" });
     }
+
+    // Fetch all issues for this review
+    const issues = await sql`
+      SELECT 
+        id, url, description, created_at, resolved, selector, 
+        relative_x, relative_y, element_height, element_width, 
+        viewport_height, viewport_width, user_id, assigned_to_user_id, env_id, review_id, screenshot
+      FROM issue
+      WHERE review_id = ${row.id}
+      ORDER BY created_at DESC
+    ` as Issue[];
+
+    // Fetch comments for each issue
+    const issuesWithComments = await Promise.all(
+      issues.map(async (issue) => {
+        const comments = await sql`
+          SELECT id, comment, issue_id, user_id, created_at, updated_at
+          FROM comment
+          WHERE issue_id = ${issue.id}
+          ORDER BY created_at ASC
+        ` as Comment[];
+
+        return { issue, comments };
+      })
+    );
+
+    // Generate markdown report
+    const markdownContent = generateReviewMarkdown(row, issues, issuesWithComments);
+
+    // Upload markdown report to R2
+    const reportUrl = await uploadReviewReportToS3(markdownContent, row.id);
+
+    // Return review with report URL if available
+    const response: any = { ...row };
+    if (reportUrl) {
+      response.report_url = reportUrl;
+    }
+
+    return c.json(response);
   });
 
   // Get all reviews
