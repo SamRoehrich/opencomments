@@ -8,26 +8,59 @@ on:
     paths:
       - 'packages/package/**'
       - '.github/workflows/build-and-deploy-package.yml'
-  pull_request:
-    branches:
-      - main
-      - master
-    paths:
-      - 'packages/package/**'
   workflow_dispatch:
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for git describe
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
+
+      - name: Generate version tag
+        id: version
+        shell: bash
+        run: |
+          # Read version from package.json
+          BASE_VERSION=$(node -p "require('./packages/package/package.json').version")
+          
+          # Get the latest tag or use base version
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          
+          if [ -z "$LATEST_TAG" ]; then
+            # No tags exist, use package.json version
+            VERSION_TAG="v${BASE_VERSION}"
+          else
+            # Extract version from latest tag (remove 'v' prefix if present)
+            LATEST_VERSION=$(echo "$LATEST_TAG" | sed 's/^v//')
+            
+            # Compare with package.json version
+            if [ "$BASE_VERSION" != "$LATEST_VERSION" ]; then
+              # Package.json version changed, use it
+              VERSION_TAG="v${BASE_VERSION}"
+            else
+              # Increment patch version
+              IFS='.' read -r -a VERSION_PARTS <<< "$LATEST_VERSION"
+              MAJOR=${VERSION_PARTS[0]}
+              MINOR=${VERSION_PARTS[1]}
+              PATCH=${VERSION_PARTS[2]}
+              NEW_PATCH=$((PATCH + 1))
+              VERSION_TAG="v${MAJOR}.${MINOR}.${NEW_PATCH}"
+            fi
+          fi
+          
+          echo "version=${VERSION_TAG}" >> $GITHUB_OUTPUT
+          echo "Generated version: ${VERSION_TAG}"
 
       - name: Install dependencies
         run: bun install
@@ -35,6 +68,39 @@ jobs:
       - name: Build package
         working-directory: packages/package
         run: bun run build
+
+      - name: Create release archive
+        run: |
+          cd packages/package/dist
+          tar -czf ../release-archive.tar.gz *
+          cd ../..
+          zip -r packages/package/release-archive.zip packages/package/dist/*
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: Release ${{ steps.version.outputs.version }}
+          body: |
+            ## Package Release ${{ steps.version.outputs.version }}
+            
+            Built from commit: ${{ github.sha }}
+            
+            ### Files
+            - `opencomments.js` - Main bundle
+            - `opencomments.js.map` - Source map
+            - `opencomments.css` - Stylesheet
+            
+            ### Installation
+            ```html
+            <link rel="stylesheet" href="https://your-r2-domain.com/${{ steps.version.outputs.version }}/opencomments.css">
+            <script src="https://your-r2-domain.com/${{ steps.version.outputs.version }}/opencomments.js"></script>
+            ```
+          files: |
+            packages/package/release-archive.tar.gz
+            packages/package/release-archive.zip
+          draft: false
+          prerelease: false
 
       - name: Configure AWS CLI for R2
         run: |
@@ -45,23 +111,30 @@ jobs:
           echo "[default]" > ~/.aws/config
           echo "region = auto" >> ~/.aws/config
 
-      - name: Upload to Cloudflare R2
+      - name: Upload to Cloudflare R2 (versioned)
         env:
           R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
           R2_BUCKET: ${{ secrets.R2_BUCKET }}
+          VERSION_TAG: ${{ steps.version.outputs.version }}
         run: |
           # Install AWS CLI if not available
           if ! command -v aws &> /dev/null; then
             pip install awscli
           fi
           
-          # Upload files to R2 using S3-compatible API
+          # Upload files to R2 using S3-compatible API with version tag
           cd packages/package/dist
           
-          # Upload each file individually
+          # Upload each file to versioned path
           for file in *; do
             if [ -f "$file" ]; then
-              aws s3 cp "$file" "s3://${R2_BUCKET}/${file}" \
+              # Upload to versioned path
+              aws s3 cp "$file" "s3://${R2_BUCKET}/${VERSION_TAG}/${file}" \
+                --endpoint-url="${R2_ENDPOINT}" \
+                --region auto
+              
+              # Also upload to latest path
+              aws s3 cp "$file" "s3://${R2_BUCKET}/latest/${file}" \
                 --endpoint-url="${R2_ENDPOINT}" \
                 --region auto
             fi
@@ -70,6 +143,8 @@ jobs:
       - name: Output deployment info
         run: |
           echo "✅ Package built and deployed to R2"
+          echo "Version: ${{ steps.version.outputs.version }}"
           echo "Bucket: ${{ secrets.R2_BUCKET }}"
-          echo "Files uploaded from packages/package/dist/"
+          echo "Versioned path: ${{ secrets.R2_BUCKET }}/${{ steps.version.outputs.version }}/"
+          echo "Latest path: ${{ secrets.R2_BUCKET }}/latest/"
 
