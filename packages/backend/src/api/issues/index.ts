@@ -1,4 +1,4 @@
-import { sql } from "bun";
+import { sql } from "../../lib/db";
 import { Hono } from "hono";
 import type { IssueInsert } from "@opencomments/types";
 

@@ -3,7 +3,10 @@ import { cors } from "hono/cors";
 import { seed } from "./sql/seed";
 import { api } from "./src/api";
 
-seed();
+// Only run seed in development (Bun runtime)
+if (typeof Bun !== "undefined") {
+  seed();
+}
 
 const app = new Hono();
 app.use(
@@ -20,7 +23,13 @@ app.use(
 
 app.route("/api", api);
 
-export default {
-  port: 3001,
-  fetch: app.fetch,
-};
+// Cloudflare Workers export (default export for Workers)
+export default app;
+
+// Bun server export (for local development) - only if Bun is available
+if (typeof Bun !== "undefined") {
+  Bun.serve({
+    port: 3001,
+    fetch: app.fetch,
+  });
+}

@@ -1,0 +1,30 @@
+name = "opencomments-backend"
+main = "index.ts"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Build Configuration
+# For Cloudflare Workers GUI, set build command to: bun install
+# This ensures the latest Bun version is used for dependency installation
+# Wrangler will automatically bundle TypeScript using esbuild
+
+[env.production]
+name = "opencomments-backend"
+
+[env.staging]
+name = "opencomments-backend-staging"
+
+# Database: Using PlanetScale PostgreSQL
+# PlanetScale now supports native PostgreSQL connections.
+# The code uses pg (PostgreSQL client) which works with Cloudflare Workers via TCP connections.
+# 
+# Note: Database migrations should be run separately, not in the Worker.
+# Run migrations manually or via a separate migration process.
+
+# Environment variables will be set via GitHub Secrets:
+# - DATABASE_URL (PlanetScale PostgreSQL connection string)
+# - BETTER_AUTH_SECRET
+# - BETTER_AUTH_URL
+# - GITHUB_CLIENT_ID
+# - GITHUB_CLIENT_SECRET
+
