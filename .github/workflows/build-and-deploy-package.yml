@@ -93,8 +93,8 @@ jobs:
             
             ### Installation
             ```html
-            <link rel="stylesheet" href="https://your-r2-domain.com/${{ steps.version.outputs.version }}/opencomments.css">
-            <script src="https://your-r2-domain.com/${{ steps.version.outputs.version }}/opencomments.js"></script>
+            <link rel="stylesheet" href="${{ secrets.R2_BUCKET }}/${{ steps.version.outputs.version }}/opencomments.css">
+            <script src="${{ secrets.R2_BUCKET }}/${{ steps.version.outputs.version }}/opencomments.js"></script>
             ```
           files: |
             packages/package/release-archive.tar.gz
