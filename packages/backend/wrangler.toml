@@ -4,9 +4,15 @@ compatibility_date = "2024-01-01"
 compatibility_flags = ["nodejs_compat"]
 
 # Build Configuration
-# For Cloudflare Workers GUI, set build command to: bun install
-# This ensures the latest Bun version is used for dependency installation
-# Wrangler will automatically bundle TypeScript using esbuild
+# 
+# IMPORTANT: This is a monorepo workspace. Cloudflare needs to install from ROOT.
+#
+# In Cloudflare Workers Dashboard → Settings → Builds:
+# - Root directory: Leave EMPTY (repository root)
+# - Build command: bun install --frozen-lockfile || bun install
+#
+# This ensures workspace dependencies (@opencomments/types) are resolved.
+# Wrangler will automatically bundle TypeScript using esbuild.
 
 [env.production]
 name = "opencomments-backend"

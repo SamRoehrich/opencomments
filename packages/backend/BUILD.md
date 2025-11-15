@@ -1,16 +1,37 @@
 # Build Command for Cloudflare Workers
 
-## Build Command
+## Build Command for Cloudflare Workers GUI
 
-For the Cloudflare Workers GUI, use this build command with Bun:
+Since this is a **monorepo workspace**, Cloudflare needs to install dependencies from the root. Use these settings:
 
+### Correct Configuration
+
+**In Cloudflare Workers Dashboard → Settings → Builds:**
+
+1. **Root directory**: Leave **EMPTY** (repository root) - **NOT** `/packages/backend`
+2. **Build command**: 
 ```bash
-bun install --frozen-lockfile || bun install
+bun install
 ```
 
-This will:
-1. Try to install with frozen lockfile (fails if lockfile is out of sync)
-2. If that fails, update the lockfile and install (for Cloudflare's build environment)
+3. **Deploy command**: Leave empty (Wrangler handles this automatically) OR use:
+```bash
+npx wrangler deploy
+```
+
+**Note**: Cloudflare already has Bun installed, so we don't need the curl command. Using `bun install` (without `--frozen-lockfile`) will update the lockfile if needed.
+
+**DO NOT USE**:
+- ❌ Root directory: `/packages/backend` (breaks workspace dependencies)
+- ❌ Build command: `bun build index.ts` (Wrangler handles bundling)
+- ❌ Deploy command: `npx wrangler versions upload` (wrong command)
+
+### Why This Works
+
+1. **Root directory empty** = Repository root, so workspace dependencies resolve
+2. **Build command installs deps** = Resolves `@opencomments/types` workspace dependency
+3. **Wrangler auto-bundles** = Reads `wrangler.toml` and bundles `index.ts` automatically
+4. **No manual build needed** = Wrangler handles TypeScript → JavaScript conversion
 
 ## Fixing Lockfile Issues
 
