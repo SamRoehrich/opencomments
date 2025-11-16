@@ -10,31 +10,27 @@ export default $config({
         aws: {
           profile: "default",
           region: "us-east-1",
-        }
+        },
       },
-      home: "aws"
+      home: "aws",
     };
   },
   async run() {
-    const router = new sst.aws.Router("My-Router", {
-      domain: "asyncreview.com",
-    })
+    const vpc = new sst.aws.Vpc("MyVpc");
+    const cluster = new sst.aws.Cluster("MyCluster", { vpc });
 
-    const docs = new sst.aws.TanStackStart("My-Docs", {
-      router: {
-        instance: router
+    const service = new sst.aws.Service("MyService", {
+      cluster,
+      image: {
+        context: "./packages/backend",
       },
-      path: "packages/frontend",
-    })
-
-    const api = new sst.aws.Function("My-Api", {
-      handler: "packages/backend/index.handler",
-      url: {
-        router: {
-          instance: router,
-          path: "/api",
-        }
+      loadBalancer: {
+        domain: "api.opencomments.com",
+        rules: [
+          { listen: "80/http" },
+          { listen: "443/https", forward: "80/http" },
+        ],
       },
-    })
+    });
   },
 });
