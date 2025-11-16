@@ -10,7 +10,7 @@ export interface OpenCommentsConfig {
 
 // Default configuration
 let config: OpenCommentsConfig = {
-  apiUrl: "https://api.opencomments.io",
+  apiUrl: "http://localhost:3001/",
   autoInit: true,
 };
 

@@ -1,12 +1,7 @@
 import { Hono } from "hono";
-import { createAuth } from "../../lib/auth";
-import type { Env } from "../../types";
+import { getAuth } from "../../lib/auth";
 
-export function createAuthHandler(env?: Env) {
-  const authHandler = new Hono();
-  const auth = createAuth(env);
+const auth = new Hono();
+auth.on(["POST", "GET"], "/*", (c) => getAuth().handler(c.req.raw));
 
-  authHandler.on(["POST", "GET"], "/*", (c) => auth.handler(c.req.raw));
-
-  return authHandler;
-}
+export default auth;

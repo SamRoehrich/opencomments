@@ -1,4 +1,25 @@
 // Database row type (what you get from SELECT queries)
+export type Review = {
+  id: number;
+  name: string;
+  description: string | null;
+  created_at: Date;
+  updated_at: Date;
+  user_id: string;
+  env_id: string | null;
+};
+
+export type ReviewInsert = {
+  name: string;
+  description?: string;
+  user_id: string;
+  env_id?: string;
+};
+
+export type ReviewUpdate = Partial<Omit<ReviewInsert, "name">> & {
+  name?: string;
+};
+
 export type Issue = {
   id: number;
   url: string | null;
@@ -12,8 +33,10 @@ export type Issue = {
   element_width: number;
   viewport_height: number;
   viewport_width: number;
-  user_id: string;
+  user_id: string; // Creator of the issue
+  assigned_to_user_id: string | null; // User the issue is assigned to
   env_id: string | null;
+  review_id: number | null;
   screenshot?: string | null; // Base64-encoded image
 };
 
@@ -28,8 +51,10 @@ export type IssueInsert = {
   element_width: number;
   viewport_height: number;
   viewport_width: number;
-  user_id: string;
+  user_id: string; // Creator of the issue
+  assigned_to_user_id?: string; // User the issue is assigned to
   env_id?: string;
+  review_id?: number;
   screenshot?: string; // Base64-encoded image
 };
 

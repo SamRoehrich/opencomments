@@ -19,12 +19,6 @@
     "tailwind": "^4.0.0"
   },
   "scripts": {
-    "dev": "bun --watch index.ts",
-    "build": "echo 'Dependencies installed - Wrangler will bundle TypeScript automatically'",
-    "deploy": "wrangler deploy --env=\"\" --env-file=./.env",
-    "deploy:production": "wrangler deploy --env production --env-file=./.env",
-    "deploy:staging": "wrangler deploy --env staging --env-file=./.env",
-    "set-secrets": "bash scripts/set-secrets.sh ./.env production",
-    "set-secrets:staging": "bash scripts/set-secrets.sh ./.env staging"
+    "dev": "bun --watch index.ts"
   }
 }

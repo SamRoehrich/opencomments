@@ -6,12 +6,12 @@ import { getUserSettings } from "./widget";
 // Store reference to existing dialog to remove it when opening a new one
 let existingDialog: HTMLElement | null = null;
 
-export const comment = ({ 
-  issue, 
+export const comment = ({
+  issue,
   commentElementId,
-  position 
-}: { 
-  issue: Issue; 
+  position,
+}: {
+  issue: Issue;
   commentElementId: string;
   position?: { x: number; y: number };
 }) => {
@@ -26,16 +26,19 @@ export const comment = ({
 
   // Create screenshot icon button if available
   let screenshotContainer: HTMLElement | null = null;
-  if (issue.screenshot) {
+  if (issue?.screenshot) {
     screenshotContainer = document.createElement("div");
     screenshotContainer.className = "opencomments-screenshot-container";
-    
+
     const imageIconButton = document.createElement("button");
     imageIconButton.className = "opencomments-screenshot-button";
     imageIconButton.title = "View screenshot";
-    
+
     // Create image icon SVG
-    const imageIconSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    const imageIconSvg = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "svg",
+    );
     imageIconSvg.setAttribute("width", "20");
     imageIconSvg.setAttribute("height", "20");
     imageIconSvg.setAttribute("viewBox", "0 0 24 24");
@@ -45,7 +48,7 @@ export const comment = ({
     imageIconSvg.setAttribute("stroke-linecap", "round");
     imageIconSvg.setAttribute("stroke-linejoin", "round");
     imageIconSvg.setAttribute("class", "opencomments-screenshot-icon");
-    
+
     const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
     rect.setAttribute("x", "3");
     rect.setAttribute("y", "3");
@@ -54,19 +57,22 @@ export const comment = ({
     rect.setAttribute("rx", "2");
     rect.setAttribute("ry", "2");
     imageIconSvg.appendChild(rect);
-    
-    const circle1 = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+
+    const circle1 = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "circle",
+    );
     circle1.setAttribute("cx", "9");
     circle1.setAttribute("cy", "9");
     circle1.setAttribute("r", "2");
     imageIconSvg.appendChild(circle1);
-    
+
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
     path.setAttribute("d", "M21 15l-3.086-3.086a2 2 0 0 0-2.828 0L6 21");
     imageIconSvg.appendChild(path);
-    
+
     imageIconButton.appendChild(imageIconSvg);
-    
+
     imageIconButton.onclick = (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -74,9 +80,9 @@ export const comment = ({
         window.open(issue.screenshot, "_blank");
       }
     };
-    
+
     screenshotContainer.appendChild(imageIconButton);
-    
+
     const imageLabel = document.createElement("span");
     imageLabel.className = "opencomments-screenshot-label";
     imageLabel.textContent = "View screenshot";
@@ -91,24 +97,33 @@ export const comment = ({
   // Create comment text display
   const commentText = document.createElement("div");
   commentText.className = "opencomments-comment-text";
-  commentText.textContent = issue.description || "No description";
+  commentText.textContent = issue?.description || "No description";
 
   // Create resolve button as a circle with green check
   const resolveButton = document.createElement("button");
-  resolveButton.className = `opencomments-resolve-button${issue.resolved ? " opencomments-resolve-button--resolved" : ""}`;
-  
+  resolveButton.className = `opencomments-resolve-button${issue?.resolved ? " opencomments-resolve-button--resolved" : ""}`;
+
   // Create checkmark SVG
-  const checkmarkSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  const checkmarkSvg = document.createElementNS(
+    "http://www.w3.org/2000/svg",
+    "svg",
+  );
   checkmarkSvg.setAttribute("width", "20");
   checkmarkSvg.setAttribute("height", "20");
   checkmarkSvg.setAttribute("viewBox", "0 0 24 24");
   checkmarkSvg.setAttribute("class", "opencomments-resolve-checkmark");
-  
-  const checkmarkPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  checkmarkPath.setAttribute("d", "M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z");
+
+  const checkmarkPath = document.createElementNS(
+    "http://www.w3.org/2000/svg",
+    "path",
+  );
+  checkmarkPath.setAttribute(
+    "d",
+    "M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z",
+  );
   checkmarkPath.setAttribute("fill", issue.resolved ? "white" : "#4caf50");
   checkmarkSvg.appendChild(checkmarkPath);
-  
+
   resolveButton.appendChild(checkmarkSvg);
 
   // Button container for alignment
@@ -122,12 +137,13 @@ export const comment = ({
 
     if (res?.resolved) {
       // Update button appearance
-      resolveButton.className = "opencomments-resolve-button opencomments-resolve-button--resolved";
+      resolveButton.className =
+        "opencomments-resolve-button opencomments-resolve-button--resolved";
       checkmarkPath.setAttribute("fill", "white");
-      
+
       // Hide the icon
-      if (typeof document.getElementById(commentElementId) !== 'undefined') {
-       document.getElementById(commentElementId)!.style.display = "none";
+      if (typeof document.getElementById(commentElementId) !== "undefined") {
+        document.getElementById(commentElementId)!.style.display = "none";
       }
     } else {
       // Update button appearance when unresolved
@@ -203,7 +219,7 @@ export const comment = ({
     e.preventDefault();
     e.stopPropagation();
     const commentText = commentInput.value.trim();
-    
+
     if (!commentText) {
       return;
     }
@@ -225,7 +241,7 @@ export const comment = ({
         issue_id: issue.id,
         user_id: settings.name,
       });
-      
+
       commentInput.value = "";
       await renderComments();
     } catch (error) {
@@ -259,11 +275,11 @@ export const comment = ({
     if (parent && !parent.contains(event.target as Node)) {
       parent.remove();
       existingDialog = null;
-      document.removeEventListener('click', handleClickOutside);
-      document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener("click", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
     }
   };
-  
+
   // Add Escape key handler to close dialog
   const handleEscape = (event: KeyboardEvent) => {
     if (event.key === "Escape" || event.keyCode === 27) {
@@ -271,53 +287,53 @@ export const comment = ({
       event.stopPropagation();
       parent.remove();
       existingDialog = null;
-      document.removeEventListener('click', handleClickOutside);
-      document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener("click", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
     }
   };
-  
+
   // Use setTimeout to avoid immediate trigger
   setTimeout(() => {
-    document.addEventListener('click', handleClickOutside);
-    document.addEventListener('keydown', handleEscape);
+    document.addEventListener("click", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
   }, 0);
-  
+
   // Position the dialog below the icon
   if (position) {
     let left = position.x;
     let top = position.y + 8; // 8px gap below icon
-    
+
     // Ensure dialog doesn't go off-screen
     // We'll adjust after appending to get actual dialog dimensions
     parent.style.left = `${left}px`;
     parent.style.top = `${top}px`;
-    
+
     // Append first to get dimensions, then adjust if needed
     document.body.appendChild(parent);
-    
+
     const dialogRect = parent.getBoundingClientRect();
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
-    
+
     // Adjust horizontal position if dialog goes off right edge
     if (dialogRect.right > viewportWidth) {
       left = viewportWidth - dialogRect.width - 8; // 8px margin from edge
       parent.style.left = `${left}px`;
     }
-    
+
     // Adjust horizontal position if dialog goes off left edge
     if (dialogRect.left < 0) {
       left = 8; // 8px margin from edge
       parent.style.left = `${left}px`;
     }
-    
+
     // Adjust vertical position if dialog goes off bottom edge
     if (dialogRect.bottom > viewportHeight) {
       // Position above icon instead
       top = position.y - dialogRect.height - 8; // 8px gap above icon
       parent.style.top = `${top}px`;
     }
-    
+
     // Adjust vertical position if dialog goes off top edge
     if (dialogRect.top < 0) {
       top = 8; // 8px margin from top
@@ -325,9 +341,10 @@ export const comment = ({
     }
   } else {
     // Fallback to center of screen if position not provided
-    parent.className = "opencomments-comment-dialog opencomments-comment-dialog--centered";
+    parent.className =
+      "opencomments-comment-dialog opencomments-comment-dialog--centered";
     document.body.appendChild(parent);
   }
-  
+
   existingDialog = parent;
 };

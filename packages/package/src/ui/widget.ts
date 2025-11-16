@@ -102,7 +102,7 @@ const openSettingsDialog = () => {
   saveButton.onclick = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     const name = nameInput.value.trim();
     const env = envInput.value.trim();
 
@@ -114,7 +114,7 @@ const openSettingsDialog = () => {
     // Save settings
     userSettings = { name, env };
     saveSettings(userSettings);
-    
+
     // Close dialog
     dialog.remove();
     widgetDialog = null;
@@ -145,8 +145,8 @@ const openSettingsDialog = () => {
     if (dialog && !dialog.contains(event.target as Node)) {
       dialog.remove();
       widgetDialog = null;
-      document.removeEventListener('click', handleClickOutside);
-      document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener("click", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
     }
   };
 
@@ -157,14 +157,14 @@ const openSettingsDialog = () => {
       event.stopPropagation();
       dialog.remove();
       widgetDialog = null;
-      document.removeEventListener('click', handleClickOutside);
-      document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener("click", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
     }
   };
 
   setTimeout(() => {
-    document.addEventListener('click', handleClickOutside);
-    document.addEventListener('keydown', handleEscape);
+    document.addEventListener("click", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
   }, 0);
 
   document.body.appendChild(dialog);
@@ -185,11 +185,14 @@ const createCommentIcon = () => {
   svg.setAttribute("stroke-width", "2");
   svg.setAttribute("stroke-linecap", "round");
   svg.setAttribute("stroke-linejoin", "round");
-  
+
   const path1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path1.setAttribute("d", "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z");
+  path1.setAttribute(
+    "d",
+    "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z",
+  );
   svg.appendChild(path1);
-  
+
   return svg;
 };
 
@@ -203,17 +206,23 @@ const createSettingsIcon = () => {
   svg.setAttribute("stroke-width", "2");
   svg.setAttribute("stroke-linecap", "round");
   svg.setAttribute("stroke-linejoin", "round");
-  
+
   const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path.setAttribute("d", "M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z");
+  path.setAttribute(
+    "d",
+    "M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z",
+  );
   svg.appendChild(path);
-  
-  const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+
+  const circle = document.createElementNS(
+    "http://www.w3.org/2000/svg",
+    "circle",
+  );
   circle.setAttribute("cx", "12");
   circle.setAttribute("cy", "12");
   circle.setAttribute("r", "3");
   svg.appendChild(circle);
-  
+
   return svg;
 };
 
@@ -227,23 +236,26 @@ const createRefreshIcon = () => {
   svg.setAttribute("stroke-width", "2");
   svg.setAttribute("stroke-linecap", "round");
   svg.setAttribute("stroke-linejoin", "round");
-  
+
   const path1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
   path1.setAttribute("d", "M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8");
   svg.appendChild(path1);
-  
+
   const path2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
   path2.setAttribute("d", "M21 3v5h-5");
   svg.appendChild(path2);
-  
+
   const path3 = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path3.setAttribute("d", "M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16");
+  path3.setAttribute(
+    "d",
+    "M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16",
+  );
   svg.appendChild(path3);
-  
+
   const path4 = document.createElementNS("http://www.w3.org/2000/svg", "path");
   path4.setAttribute("d", "M3 21v-5h5");
   svg.appendChild(path4);
-  
+
   return svg;
 };
 
@@ -253,15 +265,16 @@ export const createWidget = () => {
 
   // Comment button (top)
   const commentButton = document.createElement("button");
-  commentButton.className = "opencomments-widget-button opencomments-widget-button--comment";
-  
+  commentButton.className =
+    "opencomments-widget-button opencomments-widget-button--comment";
+
   const commentIcon = createCommentIcon();
   commentIcon.setAttribute("class", "opencomments-widget-icon");
   commentButton.appendChild(commentIcon);
 
   commentButton.onclick = (e) => {
     e.stopPropagation();
-    
+
     // Check if settings exist in localStorage
     const storedSettings = loadSettings();
     if (storedSettings) {
@@ -276,8 +289,9 @@ export const createWidget = () => {
 
   // Settings button (bottom)
   const settingsButton = document.createElement("button");
-  settingsButton.className = "opencomments-widget-button opencomments-widget-button--settings";
-  
+  settingsButton.className =
+    "opencomments-widget-button opencomments-widget-button--settings";
+
   const settingsIcon = createSettingsIcon();
   settingsIcon.setAttribute("class", "opencomments-widget-icon");
   settingsButton.appendChild(settingsIcon);
@@ -289,21 +303,22 @@ export const createWidget = () => {
 
   // Refresh button (bottom)
   const refreshButton = document.createElement("button");
-  refreshButton.className = "opencomments-widget-button opencomments-widget-button--refresh";
-  
+  refreshButton.className =
+    "opencomments-widget-button opencomments-widget-button--refresh";
+
   const refreshIcon = createRefreshIcon();
   refreshIcon.setAttribute("class", "opencomments-widget-icon");
   refreshButton.appendChild(refreshIcon);
 
   refreshButton.onclick = async (e) => {
     e.stopPropagation();
-    
+
     // Disable button during refresh
     refreshButton.disabled = true;
-    
+
     // Clear existing icons
     clearAllIcons();
-    
+
     // Re-render all issues
     try {
       await renderAllIssues();

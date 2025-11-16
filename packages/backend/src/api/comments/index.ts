@@ -1,14 +1,9 @@
-import { createDb, createSql } from "../../lib/db";
 import { Hono } from "hono";
 import type { CommentInsert } from "@opencomments/types";
-import type { Env } from "../../types";
+import { sql } from "bun";
 
-export function createCommentsRouter(env?: Env) {
-  const comments = new Hono();
-  const db = createDb(env);
-  const sql = createSql(db);
+const comments = new Hono();
 
-// Get all comments for an issue
 comments.get("/issue/:issueId", async (c) => {
   const issueId = c.req.param("issueId");
   const comments = await sql`
@@ -38,5 +33,4 @@ comments.post("/create", async (c) => {
   }
 });
 
-  return comments;
-}
+  export default comments;

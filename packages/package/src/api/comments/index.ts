@@ -1,20 +1,28 @@
-import type { Issue, IssueInsert, Comment, CommentInsert } from "@opencomments/types";
+import type {
+  Issue,
+  IssueInsert,
+  Comment,
+  CommentInsert,
+} from "@opencomments/types";
 
 // Get the API base URL from window or use default
 function getApiBaseUrl(): string {
-  if (typeof window !== "undefined" && (window as any).__OPENCOMMENTS_API_URL__) {
+  if (
+    typeof window !== "undefined" &&
+    (window as any).__OPENCOMMENTS_API_URL__
+  ) {
     return (window as any).__OPENCOMMENTS_API_URL__;
   }
-  return "https://api.opencomments.io";
+  return "http://localhost:3001";
 }
 
 export const getAllIssues = async (envId?: string): Promise<Issue[]> => {
   const baseUrl = getApiBaseUrl();
-  const url = envId 
+  const url = envId
     ? `${baseUrl}/api/issues?env=${encodeURIComponent(envId)}`
     : `${baseUrl}/api/issues`;
   const data = await fetch(url);
-  const issues = await data.json() as Issue[];
+  const issues = (await data.json()) as Issue[];
 
   return issues;
 };
@@ -24,10 +32,13 @@ export const getIssue = async (id: number): Promise<Issue> => {
   const data = await fetch(`${baseUrl}/api/issues/${id}`);
   const res = await data?.json();
 
-  return res[0];
+  return res;
 };
 
-export const resolveIssue = async (id: number, resolved: boolean): Promise<Issue> => {
+export const resolveIssue = async (
+  id: number,
+  resolved: boolean,
+): Promise<Issue> => {
   const baseUrl = getApiBaseUrl();
   const res = await fetch(`${baseUrl}/api/issues/resolve`, {
     method: "POST",
@@ -54,11 +65,13 @@ export const createIssue = async (issue: IssueInsert): Promise<Issue> => {
 export const getComments = async (issueId: number): Promise<Comment[]> => {
   const baseUrl = getApiBaseUrl();
   const res = await fetch(`${baseUrl}/api/comments/issue/${issueId}`);
-  const comments = await res.json() as Comment[];
+  const comments = (await res.json()) as Comment[];
   return comments;
 };
 
-export const createComment = async (comment: CommentInsert): Promise<Comment> => {
+export const createComment = async (
+  comment: CommentInsert,
+): Promise<Comment> => {
   const baseUrl = getApiBaseUrl();
   const res = await fetch(`${baseUrl}/api/comments/create`, {
     method: "POST",
