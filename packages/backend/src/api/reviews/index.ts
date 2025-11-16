@@ -1,13 +1,9 @@
-import { createDb, createSql } from "../../lib/db";
 import { Hono } from "hono";
 import type { ReviewInsert, ReviewUpdate, Issue, Comment } from "@opencomments/types";
-import type { Env } from "../../types";
 import { generateReviewMarkdown, uploadReviewReportToS3 } from "../../lib/s3";
+import { sql } from "bun";
 
-export function createReviewsRouter(env?: Env) {
-  const reviews = new Hono();
-  const db = createDb(env);
-  const sql = createSql(db);
+const reviews = new Hono();
 
   // Create a new review
   reviews.post("/create", async (c) => {
@@ -115,34 +111,29 @@ export function createReviewsRouter(env?: Env) {
       return c.json({ message: "No fields to update" });
     }
 
-    // Build the update query with only provided fields
-    const updates: string[] = [];
-    const values: any[] = [];
-    let paramIndex = 1;
-
-    if (data.name !== undefined) {
-      updates.push(`name = $${paramIndex++}`);
-      values.push(data.name);
+    // Build update query using Bun.sql template tags
+    // For dynamic updates, we'll construct the query with template literals
+    let updateQuery: any;
+    
+    if (data.name !== undefined && data.description !== undefined && data.env_id !== undefined) {
+      updateQuery = sql`UPDATE review SET name = ${data.name}, description = ${data.description}, env_id = ${data.env_id}, updated_at = ${new Date()} WHERE id = ${id} RETURNING id, name, description, created_at, updated_at, user_id, env_id`;
+    } else if (data.name !== undefined && data.description !== undefined) {
+      updateQuery = sql`UPDATE review SET name = ${data.name}, description = ${data.description}, updated_at = ${new Date()} WHERE id = ${id} RETURNING id, name, description, created_at, updated_at, user_id, env_id`;
+    } else if (data.name !== undefined && data.env_id !== undefined) {
+      updateQuery = sql`UPDATE review SET name = ${data.name}, env_id = ${data.env_id}, updated_at = ${new Date()} WHERE id = ${id} RETURNING id, name, description, created_at, updated_at, user_id, env_id`;
+    } else if (data.description !== undefined && data.env_id !== undefined) {
+      updateQuery = sql`UPDATE review SET description = ${data.description}, env_id = ${data.env_id}, updated_at = ${new Date()} WHERE id = ${id} RETURNING id, name, description, created_at, updated_at, user_id, env_id`;
+    } else if (data.name !== undefined) {
+      updateQuery = sql`UPDATE review SET name = ${data.name}, updated_at = ${new Date()} WHERE id = ${id} RETURNING id, name, description, created_at, updated_at, user_id, env_id`;
+    } else if (data.description !== undefined) {
+      updateQuery = sql`UPDATE review SET description = ${data.description}, updated_at = ${new Date()} WHERE id = ${id} RETURNING id, name, description, created_at, updated_at, user_id, env_id`;
+    } else if (data.env_id !== undefined) {
+      updateQuery = sql`UPDATE review SET env_id = ${data.env_id}, updated_at = ${new Date()} WHERE id = ${id} RETURNING id, name, description, created_at, updated_at, user_id, env_id`;
+    } else {
+      updateQuery = sql`UPDATE review SET updated_at = ${new Date()} WHERE id = ${id} RETURNING id, name, description, created_at, updated_at, user_id, env_id`;
     }
-    if (data.description !== undefined) {
-      updates.push(`description = $${paramIndex++}`);
-      values.push(data.description);
-    }
-    if (data.env_id !== undefined) {
-      updates.push(`env_id = $${paramIndex++}`);
-      values.push(data.env_id);
-    }
-
-    updates.push(`updated_at = $${paramIndex++}`);
-    values.push(new Date());
-    values.push(id);
-
-    const [row] = await sql.unsafe(`
-      UPDATE review 
-      SET ${updates.join(", ")}
-      WHERE id = $${paramIndex}
-      RETURNING id, name, description, created_at, updated_at, user_id, env_id
-    `, values);
+    
+    const [row] = await updateQuery;
 
     if (row) {
       return c.json(row);
@@ -185,6 +176,5 @@ export function createReviewsRouter(env?: Env) {
     return c.json(issues);
   });
 
-  return reviews;
-}
+  export default reviews;
 

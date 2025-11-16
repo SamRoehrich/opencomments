@@ -1,9 +1,8 @@
 // Seed function - only runs in Bun runtime (local development)
-// Cloudflare Workers should not run migrations/seeds
 export const seed = async () => {
   // Only run in Bun runtime
   if (typeof Bun === "undefined") {
-    return; // Skip in Cloudflare Workers
+    return;
   }
 
   // Access Bun.sql directly (Bun is a global, not a module)

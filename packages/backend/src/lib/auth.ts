@@ -1,9 +1,25 @@
 import { betterAuth } from "better-auth";
-import { createDb } from "./db";
+import { Pool } from "pg";
 
-// Auth factory function that accepts env for Cloudflare Workers
+// Create database connection for better-auth (uses pg)
+function createAuthDb(env?: any) {
+  const databaseUrl = env?.DATABASE_URL || process.env.DATABASE_URL;
+  if (!databaseUrl) {
+    throw new Error("DATABASE_URL is required. Set it in .env file or as an environment variable.");
+  }
+  
+  // PlanetScale PostgreSQL requires SSL
+  return new Pool({
+    connectionString: databaseUrl,
+    ssl: {
+      rejectUnauthorized: false,
+    },
+  });
+}
+
+// Auth factory function that accepts env parameter
 export function createAuth(env?: any) {
-  const db = createDb(env);
+  const db = createAuthDb(env);
   
   const githubClientId = env?.GITHUB_CLIENT_ID || process.env.GITHUB_CLIENT_ID;
   const githubClientSecret = env?.GITHUB_CLIENT_SECRET || process.env.GITHUB_CLIENT_SECRET;
