@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { createApi } from "./src/api";
+import api from "./src/api";
 
 // Import seed only in Bun runtime to avoid bundling issues
 if (typeof Bun !== "undefined") {
@@ -21,7 +21,6 @@ app.use(
   }),
 );
 
-const api = createApi();
 app.route("/api", api);
 
 if (typeof Bun !== "undefined") {

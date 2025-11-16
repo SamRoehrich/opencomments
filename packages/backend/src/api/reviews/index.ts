@@ -1,6 +1,5 @@
 import { Hono } from "hono";
 import type { ReviewInsert, ReviewUpdate, Issue, Comment } from "@opencomments/types";
-import { generateReviewMarkdown, uploadReviewReportToS3 } from "../../lib/s3";
 import { sql } from "bun";
 
 const reviews = new Hono();
@@ -45,19 +44,7 @@ const reviews = new Hono();
       })
     );
 
-    // Generate markdown report
-    const markdownContent = generateReviewMarkdown(row, issues, issuesWithComments);
-
-    // Upload markdown report to R2
-    const reportUrl = await uploadReviewReportToS3(markdownContent, row.id);
-
-    // Return review with report URL if available
-    const response: any = { ...row };
-    if (reportUrl) {
-      response.report_url = reportUrl;
-    }
-
-    return c.json(response);
+    return c.json({ review: row, issues, issuesWithComments });
   });
 
   // Get all reviews
