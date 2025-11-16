@@ -166,17 +166,22 @@
 
 /* Base Widget Expanded State */
 .opencomments-base-widget--expanded {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(30px) saturate(180%);
-  -webkit-backdrop-filter: blur(30px) saturate(180%);
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(30px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+  border-radius: 20px !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
   box-shadow:
     0 20px 60px rgba(0, 0, 0, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
-  padding: 16px;
-  min-width: 280px;
-  max-width: 320px;
+    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+  padding: 16px !important;
+  min-width: 280px !important;
+  max-width: 320px !important;
+}
+
+/* Hide widget buttons when expanded */
+.opencomments-base-widget--expanded > .opencomments-widget-button {
+  display: none !important;
 }
 
 /* Base Widget Expanded Content */
@@ -353,6 +358,329 @@
   box-shadow:
     0 6px 16px rgba(0, 0, 0, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+/* ============================================
+   Review Viewer Widget Styles (for viewing reviews)
+   ============================================ */
+
+/* Review Viewer Widget Container */
+.opencomments-review-viewer {
+  position: fixed;
+  top: 24px;
+  left: 24px;
+  z-index: 9998;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Hide button when expanded */
+.opencomments-review-viewer-button--hidden {
+  display: none !important;
+}
+
+/* Review Viewer Expanded State */
+.opencomments-review-viewer--expanded {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  padding: 16px;
+  min-width: 280px;
+  max-width: 320px;
+}
+
+/* Review Viewer Expanded Content */
+.opencomments-review-viewer-expanded {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Review Viewer Header Container */
+.opencomments-review-viewer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+  gap: 8px;
+}
+
+/* Header Actions Container */
+.opencomments-review-viewer-header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+/* Issues Text */
+.opencomments-review-viewer-issues-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Review Viewer Close Button */
+.opencomments-review-viewer-close-button {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  color: rgba(17, 17, 17, 0.6);
+}
+
+.opencomments-review-viewer-close-button:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: rgba(17, 17, 17, 0.9);
+}
+
+.opencomments-review-viewer-close-icon {
+  width: 12px;
+  height: 12px;
+}
+
+/* Issue List Container (Scrollable) */
+.opencomments-review-viewer-issue-list {
+  max-height: 300px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-right: 4px;
+}
+
+/* Scrollbar styling for issue list */
+.opencomments-review-viewer-issue-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.opencomments-review-viewer-issue-list::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 3px;
+}
+
+.opencomments-review-viewer-issue-list::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.opencomments-review-viewer-issue-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Issue Item */
+.opencomments-review-viewer-issue-item {
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+}
+
+.opencomments-review-viewer-issue-item:hover {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Ensure child elements don't interfere with hover */
+.opencomments-review-viewer-issue-item:hover > * {
+  pointer-events: none;
+}
+
+/* Issue Description */
+.opencomments-review-viewer-issue-description {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  line-height: 1.4;
+}
+
+/* Issue Meta */
+.opencomments-review-viewer-issue-meta {
+  font-size: 11px;
+  color: #999;
+  margin-top: 4px;
+}
+
+/* Loading/Error/Empty States */
+.opencomments-review-viewer-loading,
+.opencomments-review-viewer-error,
+.opencomments-review-viewer-empty {
+  padding: 16px;
+  text-align: center;
+  font-size: 14px;
+  color: #666;
+}
+
+.opencomments-review-viewer-error {
+  color: #d32f2f;
+}
+
+/* Switch Review Button */
+.opencomments-review-viewer-switch-button {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #333;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.opencomments-review-viewer-switch-button:hover {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Exit Review Button */
+.opencomments-review-viewer-exit-button {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(211, 47, 47, 0.2);
+  background: rgba(211, 47, 47, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #d32f2f;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.opencomments-review-viewer-exit-button:hover {
+  background: rgba(211, 47, 47, 0.15);
+  border-color: rgba(211, 47, 47, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(211, 47, 47, 0.2);
+}
+
+/* Dropdown Container */
+.opencomments-review-viewer-dropdown-container {
+  position: relative;
+}
+
+/* Review Dropdown List */
+.opencomments-review-viewer-review-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  padding: 8px;
+  min-width: 200px;
+  max-width: 280px;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Scrollbar styling for review dropdown */
+.opencomments-review-viewer-review-dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.opencomments-review-viewer-review-dropdown::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 3px;
+}
+
+.opencomments-review-viewer-review-dropdown::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.opencomments-review-viewer-review-dropdown::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Review Item in Dropdown */
+.opencomments-review-viewer-review-item {
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.opencomments-review-viewer-review-item:hover {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.opencomments-review-viewer-review-item--active {
+  background: rgba(17, 17, 17, 0.1);
+  border-color: rgba(17, 17, 17, 0.2);
+}
+
+.opencomments-review-viewer-review-item--active:hover {
+  background: rgba(17, 17, 17, 0.15);
+}
+
+/* Review Name in Dropdown */
+.opencomments-review-viewer-review-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  line-height: 1.4;
+}
+
+/* Review Meta in Dropdown */
+.opencomments-review-viewer-review-meta {
+  font-size: 11px;
+  color: #999;
+  margin-top: 2px;
 }
 
 /* ============================================

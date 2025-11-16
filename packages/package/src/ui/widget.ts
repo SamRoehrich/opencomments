@@ -12,9 +12,11 @@ import {
   createRefreshIcon,
   createCheckmarkIcon,
   addDialogSubmitShortcut,
+  createCloseIcon,
 } from "./elements";
-import { getActiveReview, setActiveReview } from "./review-dialog";
+import { getActiveReview, setActiveReview, openReviewDialog } from "./review-dialog";
 import { finalizeReview } from "./finalize-review";
+import { getReviews } from "../api/reviews";
 
 const STORAGE_KEY = "opencomments_settings";
 
@@ -188,131 +190,375 @@ const openSettingsDialog = () => {
 };
 
 
-export const createWidget = () => {
-  const commentIcon = createCommentIcon({ className: "opencomments-widget-icon" });
+let widgetElement: HTMLElement | null = null;
+let commentButton: HTMLElement | null = null;
+let settingsButton: HTMLElement | null = null;
+let finalizeButton: HTMLElement | null = null;
+let reviewSelectionButton: HTMLElement | null = null;
+let isReviewListExpanded = false;
+let expandedContent: HTMLElement | null = null;
+let handleKeyboardShortcuts: ((e: KeyboardEvent) => void) | null = null;
+
+const loadReviewsIntoList = async (reviewListContainer: HTMLElement) => {
+  reviewListContainer.innerHTML = "";
   
-  const commentButton = createButton({
-    className: ["opencomments-widget-button", "opencomments-widget-button--comment"],
-    children: [commentIcon],
+  const loadingText = createDiv({
+    className: "opencomments-base-widget-loading",
+    text: "Loading reviews...",
+  });
+  reviewListContainer.appendChild(loadingText);
+
+  const settings = getUserSettings();
+  const envId = settings?.env;
+
+  let reviews: any[] = [];
+
+  try {
+    reviews = await getReviews(envId);
+  } catch (error) {
+    console.error("Failed to load reviews:", error);
+    reviewListContainer.innerHTML = "";
+    const errorText = createDiv({
+      className: "opencomments-base-widget-error",
+      text: "Failed to load reviews",
+    });
+    reviewListContainer.appendChild(errorText);
+    return;
+  }
+
+  reviewListContainer.innerHTML = "";
+
+  if (reviews.length === 0) {
+    const noReviewsText = createDiv({
+      className: "opencomments-base-widget-empty",
+      text: "No reviews found",
+    });
+    reviewListContainer.appendChild(noReviewsText);
+    return;
+  }
+
+  reviews.forEach((review) => {
+    const reviewItem = createDiv({
+      className: "opencomments-base-widget-review-item",
+    });
+
+    const reviewName = createDiv({
+      className: "opencomments-base-widget-review-name",
+      text: review.name,
+    });
+
+    const reviewDescription = review.description
+      ? createDiv({
+          className: "opencomments-base-widget-review-description",
+          text: review.description,
+        })
+      : null;
+
+    const reviewMeta = createDiv({
+      className: "opencomments-base-widget-review-meta",
+      text: new Date(review.created_at).toLocaleDateString(),
+    });
+
+    reviewItem.appendChild(reviewName);
+    if (reviewDescription) {
+      reviewItem.appendChild(reviewDescription);
+    }
+    reviewItem.appendChild(reviewMeta);
+
+    reviewItem.onclick = async (e) => {
+      e.stopPropagation();
+
+      // Set active review
+      setActiveReview({
+        id: review.id,
+        name: review.name,
+        description: review.description || undefined,
+        env_id: review.env_id || undefined,
+      });
+
+      // Collapse widget
+      collapseReviewList();
+
+      // Switch to viewer mode for existing reviews (not reviewer mode)
+      window.dispatchEvent(new CustomEvent("review-selected", { detail: review }));
+    };
+
+    reviewListContainer.appendChild(reviewItem);
+  });
+};
+
+const expandReviewList = async () => {
+  if (isReviewListExpanded || !widgetElement) return;
+  isReviewListExpanded = true;
+
+  // Add expanded class - works with both widget classes
+  widgetElement.classList.add("opencomments-base-widget--expanded");
+  widgetElement.style.position = "relative";
+
+  expandedContent = createDiv({
+    className: "opencomments-base-widget-expanded",
+  });
+
+  const headerContainer = createDiv({
+    className: "opencomments-base-widget-header",
+  });
+
+  const reviewsText = createDiv({
+    className: "opencomments-base-widget-reviews-text",
+    text: "Reviews",
+  });
+
+  const closeButton = createButton({
+    className: "opencomments-base-widget-close-button",
+    children: [createCloseIcon({ className: "opencomments-base-widget-close-icon", width: "12", height: "12" })],
     onClick: (e) => {
       e.stopPropagation();
-
-      // Check if settings exist in localStorage
-      const storedSettings = loadSettings();
-      if (storedSettings) {
-        // Use stored settings and go straight to comment mode
-        userSettings = storedSettings;
-        addCreateCommentFormListener();
-      } else {
-        // No settings found, open settings dialog first
-        openSettingsDialog();
-      }
+      collapseReviewList();
     },
   });
 
-  const settingsIcon = createSettingsIcon({ className: "opencomments-widget-icon" });
-  
-  const settingsButton = createButton({
-    className: ["opencomments-widget-button", "opencomments-widget-button--settings"],
-    children: [settingsIcon],
+  headerContainer.appendChild(reviewsText);
+  headerContainer.appendChild(closeButton);
+
+  const reviewListContainer = createDiv({
+    className: "opencomments-base-widget-review-list",
+  });
+
+  const createNewButton = createButton({
+    className: "opencomments-base-widget-create-button",
+    text: "Start New Review",
     onClick: (e) => {
       e.stopPropagation();
-      openSettingsDialog();
+      collapseReviewList();
+      openReviewDialog();
     },
   });
 
-  const refreshIcon = createRefreshIcon({ className: "opencomments-widget-icon" });
-  
-  const refreshButton = createButton({
-    className: ["opencomments-widget-button", "opencomments-widget-button--refresh"],
-    children: [refreshIcon],
-    onClick: async (e) => {
-      e.stopPropagation();
+  expandedContent.appendChild(headerContainer);
+  expandedContent.appendChild(reviewListContainer);
+  expandedContent.appendChild(createNewButton);
 
-      // Disable button during refresh
-      refreshButton.disabled = true;
+  widgetElement.appendChild(expandedContent);
 
-      // Clear existing icons
-      clearAllIcons();
+  await loadReviewsIntoList(reviewListContainer);
 
-      // Re-render all issues
-      try {
-        await renderAllIssues();
-      } catch (error) {
-        console.error("Failed to refresh comments:", error);
-      } finally {
-        // Re-enable button
-        refreshButton.disabled = false;
-      }
-    },
-  });
-
-  // Finalize review button (only shown when review is active)
-  const finalizeIcon = createCheckmarkIcon({ 
-    className: "opencomments-widget-icon",
-    width: "14",
-    height: "14",
-  });
-  
-  const finalizeButton = createButton({
-    className: ["opencomments-widget-button", "opencomments-widget-button--finalize"],
-    children: [finalizeIcon],
-    title: "Finalize Review",
-    onClick: (e) => {
-      e.stopPropagation();
-      if (confirm("Are you sure you want to finalize this review? This will end the current review session.")) {
-        finalizeReview();
-        updateFinalizeButtonVisibility();
-      }
-    },
-  });
-
-  // Function to update finalize button visibility
-  const updateFinalizeButtonVisibility = () => {
-    const activeReview = getActiveReview();
-    if (activeReview) {
-      if (!widget.contains(finalizeButton)) {
-        // Insert before settings button
-        widget.insertBefore(finalizeButton, settingsButton);
-      }
-      finalizeButton.style.display = "";
-    } else {
-      finalizeButton.style.display = "none";
+  // Add click outside handler
+  const handleClickOutside = (event: MouseEvent) => {
+    if (widgetElement && !widgetElement.contains(event.target as Node)) {
+      collapseReviewList();
+      document.removeEventListener("click", handleClickOutside);
     }
   };
 
-  const widget = createDiv({
-    className: "opencomments-widget",
-    children: [commentButton, settingsButton, refreshButton],
-  });
-
-  // Listen for review state changes
-  window.addEventListener("review-started", updateFinalizeButtonVisibility);
-  window.addEventListener("review-finalized", updateFinalizeButtonVisibility);
-
-  // Initial check for active review
-  updateFinalizeButtonVisibility();
-
-  document.body.appendChild(widget);
-  
-  return widget;
+  setTimeout(() => {
+    document.addEventListener("click", handleClickOutside);
+  }, 0);
 };
 
-let widgetElement: HTMLElement | null = null;
+const collapseReviewList = () => {
+  if (!isReviewListExpanded || !widgetElement) return;
+  isReviewListExpanded = false;
 
-export const createWidgetWithTracking = () => {
+  widgetElement.classList.remove("opencomments-base-widget--expanded");
+  widgetElement.style.position = "";
+  
+  if (expandedContent) {
+    expandedContent.remove();
+    expandedContent = null;
+  }
+};
+
+const updateWidgetButtons = () => {
+  if (!widgetElement) return;
+
+  // Collapse review list if open
+  collapseReviewList();
+
+  const activeReview = getActiveReview();
+
+  // Clear all buttons
+  widgetElement.innerHTML = "";
+
+  if (activeReview) {
+    // Review mode: show comment, settings, and finalize buttons
+    const commentIcon = createCommentIcon({ className: "opencomments-widget-icon" });
+    
+    commentButton = createButton({
+      className: ["opencomments-widget-button", "opencomments-widget-button--comment"],
+      children: [commentIcon],
+      onClick: (e) => {
+        e.stopPropagation();
+        const storedSettings = loadSettings();
+        if (storedSettings) {
+          userSettings = storedSettings;
+          addCreateCommentFormListener();
+        } else {
+          openSettingsDialog();
+        }
+      },
+      title: "Add Comment (Press 'c')",
+    });
+
+    const finalizeIcon = createCheckmarkIcon({ 
+      className: "opencomments-widget-icon",
+      width: "14",
+      height: "14",
+    });
+    
+    finalizeButton = createButton({
+      className: ["opencomments-widget-button", "opencomments-widget-button--finalize"],
+      children: [finalizeIcon],
+      title: "Finalize Review (Cmd+Enter)",
+      onClick: (e) => {
+        e.stopPropagation();
+        if (confirm("Are you sure you want to finalize this review? This will end the current review session.")) {
+          finalizeReview();
+        }
+      },
+    });
+
+    const settingsIcon = createSettingsIcon({ className: "opencomments-widget-icon" });
+    
+    settingsButton = createButton({
+      className: ["opencomments-widget-button", "opencomments-widget-button--settings"],
+      children: [settingsIcon],
+      onClick: (e) => {
+        e.stopPropagation();
+        openSettingsDialog();
+      },
+    });
+
+    widgetElement.appendChild(commentButton);
+    widgetElement.appendChild(finalizeButton);
+    widgetElement.appendChild(settingsButton);
+  } else {
+    // No review: show review selection button
+    const reviewIcon = createCommentIcon({ className: "opencomments-widget-icon" });
+    
+    reviewSelectionButton = createButton({
+      className: ["opencomments-widget-button", "opencomments-widget-button--comment"],
+      children: [reviewIcon],
+      onClick: async (e) => {
+        e.stopPropagation();
+        if (isReviewListExpanded) {
+          collapseReviewList();
+        } else {
+          await expandReviewList();
+        }
+      },
+      title: "Select or create a review",
+    });
+
+    widgetElement.appendChild(reviewSelectionButton);
+  }
+};
+
+const setupKeyboardShortcuts = () => {
+  // Remove existing handler if any
+  if (handleKeyboardShortcuts) {
+    document.removeEventListener("keydown", handleKeyboardShortcuts);
+  }
+
+  handleKeyboardShortcuts = (e: KeyboardEvent) => {
+    const activeReview = getActiveReview();
+    
+    // Only handle shortcuts when review is active
+    if (!activeReview) return;
+
+    // Press 'c' to enable comment mode
+    if (e.key === 'c' || e.key === 'C') {
+      // Don't trigger if user is typing in an input/textarea
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        return;
+      }
+      
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const storedSettings = loadSettings();
+      if (storedSettings) {
+        userSettings = storedSettings;
+        addCreateCommentFormListener();
+      } else {
+        openSettingsDialog();
+      }
+      return;
+    }
+
+    // Command+Enter or Ctrl+Enter to finalize review
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if (confirm("Are you sure you want to finalize this review? This will end the current review session.")) {
+        finalizeReview();
+      }
+      return;
+    }
+  };
+
+  document.addEventListener("keydown", handleKeyboardShortcuts);
+};
+
+export const createWidget = () => {
   // Remove existing widget if it exists
   if (widgetElement) {
     widgetElement.remove();
   }
+
+  widgetElement = createDiv({
+    className: "opencomments-widget",
+    children: [],
+  });
+
+  updateWidgetButtons();
+  setupKeyboardShortcuts();
+
+  // Listen for review state changes
+  window.addEventListener("review-started", () => {
+    updateWidgetButtons();
+    setupKeyboardShortcuts();
+  });
   
-  widgetElement = createWidget();
+  window.addEventListener("review-finalized", () => {
+    updateWidgetButtons();
+    setupKeyboardShortcuts();
+  });
+
+  window.addEventListener("review-exited", () => {
+    updateWidgetButtons();
+    setupKeyboardShortcuts();
+  });
+
+  document.body.appendChild(widgetElement);
+  
   return widgetElement;
+};
+
+export const createWidgetWithTracking = () => {
+  return createWidget();
 };
 
 export const removeWidget = () => {
   if (widgetElement) {
+    if (handleKeyboardShortcuts) {
+      document.removeEventListener("keydown", handleKeyboardShortcuts);
+      handleKeyboardShortcuts = null;
+    }
     widgetElement.remove();
     widgetElement = null;
+    commentButton = null;
+    settingsButton = null;
+    finalizeButton = null;
+    reviewSelectionButton = null;
+    expandedContent = null;
+    isReviewListExpanded = false;
+  }
+};
+
+export const updateWidget = () => {
+  if (widgetElement) {
+    updateWidgetButtons();
   }
 };

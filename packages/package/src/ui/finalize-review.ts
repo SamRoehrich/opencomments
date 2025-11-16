@@ -1,4 +1,5 @@
 import { getActiveReview, setActiveReview } from "./review-dialog";
+import { removeCreateCommentFormListener } from "../lib/globals";
 
 export const finalizeReview = () => {
   const activeReview = getActiveReview();
@@ -7,6 +8,9 @@ export const finalizeReview = () => {
     console.warn("No active review to finalize");
     return;
   }
+
+  // Disable comment mode if it's active (reset cursor)
+  removeCreateCommentFormListener();
 
   // Clear active review from localStorage
   setActiveReview(null);

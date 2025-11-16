@@ -14,7 +14,8 @@ import {
 } from "./elements";
 
 export const createCommentForm = (args: ElementPositionMeta) => {
-  removeCreateCommentFormListener();
+  // Don't disable comment mode yet - keep it active while form is open
+  // It will be disabled after successful submission or cancellation
   
   // Remove existing dialog if it exists
   (window as any).OpenComments.dialog.remove();
@@ -101,7 +102,8 @@ export const createCommentForm = (args: ElementPositionMeta) => {
       (window as any).OpenComments.dialog.remove();
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleEscape);
-      // Go back to normal mode - don't re-add listener
+      // Disable comment mode when form is closed
+      removeCreateCommentFormListener();
     }
   };
 
@@ -114,7 +116,8 @@ export const createCommentForm = (args: ElementPositionMeta) => {
       (window as any).OpenComments.dialog.remove();
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleEscape);
-      // Go back to normal mode - don't re-add listener
+      // Disable comment mode when form is closed
+      removeCreateCommentFormListener();
     }
   };
 
@@ -128,7 +131,8 @@ export const createCommentForm = (args: ElementPositionMeta) => {
     (window as any).OpenComments.dialog.remove();
     document.removeEventListener('mousedown', handleClickOutside);
     document.removeEventListener('keydown', handleEscape);
-    // Go back to normal mode - don't re-add listener
+    // Disable comment mode when form is cancelled
+    removeCreateCommentFormListener();
   };
   
   // Use mousedown instead of click, and add a longer delay to avoid immediate trigger
@@ -206,8 +210,9 @@ async function handleButtonClick(
     // Clean up all listeners
     document.removeEventListener('mousedown', handleClickOutside);
     document.removeEventListener('keydown', handleEscape);
-    // Don't re-add the listener - go back to normal mode
-    // User needs to click the widget again to enter comment mode
+    // Disable comment mode after successful comment creation
+    // User needs to click the comment button or press 'c' again to enter comment mode
+    removeCreateCommentFormListener();
     await renderAllIssues();
   } else {
     // Re-enable button if creation failed
