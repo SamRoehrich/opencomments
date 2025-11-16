@@ -185,3 +185,22 @@ export const createCheckmarkIcon = (options: IconOptions & { fill?: string } = {
   return svg;
 };
 
+export const createCloseIcon = (options: IconOptions = {}): SVGElement => {
+  const svg = createSVG({
+    width: options.width || "14",
+    height: options.height || "14",
+    stroke: options.stroke || "currentColor",
+    strokeWidth: options.strokeWidth || "2",
+    strokeLinecap: options.strokeLinecap || "round",
+    strokeLinejoin: options.strokeLinejoin || "round",
+    className: options.className,
+  });
+  
+  const path1 = createSVGPath("M18 6L6 18");
+  const path2 = createSVGPath("M6 6l12 12");
+  svg.appendChild(path1);
+  svg.appendChild(path2);
+  
+  return svg;
+};
+

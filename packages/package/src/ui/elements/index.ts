@@ -10,4 +10,5 @@ export * from "./container";
 export * from "./icons";
 export * from "./dialog";
 export * from "./overlay";
+export * from "./dialog-utils";
 

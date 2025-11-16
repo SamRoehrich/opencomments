@@ -1,7 +1,9 @@
 import "./style.css";
-import { createWidget } from "./ui/widget.ts";
+import { createWidgetWithTracking, removeWidget } from "./ui/widget.ts";
 import { renderAllIssues } from "./lib/render-all-issues.ts";
-import { createBaseWidget } from "./ui/base-widget.ts";
+import { createBaseWidget, removeBaseWidget } from "./ui/base-widget.ts";
+import { getActiveReview } from "./ui/review-dialog.ts";
+import { clearAllIcons } from "./lib/create-comment-button.ts";
 
 export interface OpenCommentsConfig {
   apiUrl?: string;
@@ -44,11 +46,37 @@ export function init(options?: OpenCommentsConfig) {
     config.apiUrl = (window as any).__OPENCOMMENTS_API_URL__;
   }
 
-  // createWidget();
-  createBaseWidget();
+  // Check if there's an active review - if so, show full widget, otherwise show base widget
+  const activeReview = getActiveReview();
+  if (activeReview) {
+    // Remove base widget if it exists and create full widget
+    removeBaseWidget();
+    createWidgetWithTracking();
+    // Load comments for the active review
+    renderAllIssues().catch((error) => {
+      console.error("Failed to render issues:", error);
+    });
+  } else {
+    createBaseWidget();
+    // Don't load comments until a review is selected
+  }
 
-  renderAllIssues().catch((error) => {
-    console.error("Failed to render issues:", error);
+  // Listen for review state changes to switch between widgets
+  window.addEventListener("review-started", async () => {
+    removeBaseWidget();
+    createWidgetWithTracking();
+    // Load comments for the newly selected review
+    clearAllIcons();
+    await renderAllIssues().catch((error) => {
+      console.error("Failed to render issues:", error);
+    });
+  });
+
+  window.addEventListener("review-finalized", () => {
+    removeWidget();
+    createBaseWidget();
+    // Clear all comment icons when review is finalized
+    clearAllIcons();
   });
 
   initialized = true;

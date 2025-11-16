@@ -9,6 +9,7 @@ import {
   createSpan,
   createScreenshotIcon,
   createCheckmarkIcon,
+  addDialogSubmitShortcut,
 } from "./elements";
 
 export const comment = ({
@@ -237,9 +238,13 @@ export const comment = ({
   // Load comments
   renderComments();
 
+  // Add keyboard shortcut support for comment form
+  const cleanupSubmitShortcut = addDialogSubmitShortcut(parent, submitCommentButton);
+
   // Add click outside to close functionality
   const handleClickOutside = (event: MouseEvent) => {
     if (parent && !parent.contains(event.target as Node)) {
+      cleanupSubmitShortcut();
       (window as any).OpenComments.dialog.remove();
       document.removeEventListener("click", handleClickOutside);
       document.removeEventListener("keydown", handleEscape);
@@ -251,6 +256,7 @@ export const comment = ({
     if (event.key === "Escape" || event.keyCode === 27) {
       event.preventDefault();
       event.stopPropagation();
+      cleanupSubmitShortcut();
       (window as any).OpenComments.dialog.remove();
       document.removeEventListener("click", handleClickOutside);
       document.removeEventListener("keydown", handleEscape);

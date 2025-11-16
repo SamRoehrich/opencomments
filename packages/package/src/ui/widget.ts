@@ -10,7 +10,11 @@ import {
   createCommentIcon,
   createSettingsIcon,
   createRefreshIcon,
+  createCheckmarkIcon,
+  addDialogSubmitShortcut,
 } from "./elements";
+import { getActiveReview, setActiveReview } from "./review-dialog";
+import { finalizeReview } from "./finalize-review";
 
 const STORAGE_KEY = "opencomments_settings";
 
@@ -34,9 +38,10 @@ const loadSettings = (): { name: string; env: string } | null => {
 };
 
 // Save settings to localStorage
-const saveSettings = (settings: { name: string; env: string }) => {
+export const saveSettings = (settings: { name: string; env: string }) => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    userSettings = settings;
   } catch (error) {
     console.error("Failed to save settings to localStorage:", error);
   }
@@ -86,6 +91,9 @@ const openSettingsDialog = () => {
       userSettings = { name, env };
       saveSettings(userSettings);
 
+      // Cleanup keyboard shortcut listeners
+      cleanupSubmitShortcut();
+
       // Close dialog
       (window as any).OpenComments.dialog.remove();
     },
@@ -97,6 +105,7 @@ const openSettingsDialog = () => {
     onClick: (e) => {
       e.preventDefault();
       e.stopPropagation();
+      cleanupSubmitShortcut();
       (window as any).OpenComments.dialog.remove();
     },
   });
@@ -141,9 +150,13 @@ const openSettingsDialog = () => {
     children: [title, form],
   });
 
+  // Add keyboard shortcut support
+  const cleanupSubmitShortcut = addDialogSubmitShortcut(dialog, saveButton);
+
   // Click outside to close
   const handleClickOutside = (event: MouseEvent) => {
     if (dialog && !dialog.contains(event.target as Node)) {
+      cleanupSubmitShortcut();
       (window as any).OpenComments.dialog.remove();
       document.removeEventListener("click", handleClickOutside);
       document.removeEventListener("keydown", handleEscape);
@@ -155,6 +168,7 @@ const openSettingsDialog = () => {
     if (event.key === "Escape" || event.keyCode === 27) {
       event.preventDefault();
       event.stopPropagation();
+      cleanupSubmitShortcut();
       (window as any).OpenComments.dialog.remove();
       document.removeEventListener("click", handleClickOutside);
       document.removeEventListener("keydown", handleEscape);
@@ -233,10 +247,72 @@ export const createWidget = () => {
     },
   });
 
+  // Finalize review button (only shown when review is active)
+  const finalizeIcon = createCheckmarkIcon({ 
+    className: "opencomments-widget-icon",
+    width: "14",
+    height: "14",
+  });
+  
+  const finalizeButton = createButton({
+    className: ["opencomments-widget-button", "opencomments-widget-button--finalize"],
+    children: [finalizeIcon],
+    title: "Finalize Review",
+    onClick: (e) => {
+      e.stopPropagation();
+      if (confirm("Are you sure you want to finalize this review? This will end the current review session.")) {
+        finalizeReview();
+        updateFinalizeButtonVisibility();
+      }
+    },
+  });
+
+  // Function to update finalize button visibility
+  const updateFinalizeButtonVisibility = () => {
+    const activeReview = getActiveReview();
+    if (activeReview) {
+      if (!widget.contains(finalizeButton)) {
+        // Insert before settings button
+        widget.insertBefore(finalizeButton, settingsButton);
+      }
+      finalizeButton.style.display = "";
+    } else {
+      finalizeButton.style.display = "none";
+    }
+  };
+
   const widget = createDiv({
     className: "opencomments-widget",
     children: [commentButton, settingsButton, refreshButton],
   });
 
+  // Listen for review state changes
+  window.addEventListener("review-started", updateFinalizeButtonVisibility);
+  window.addEventListener("review-finalized", updateFinalizeButtonVisibility);
+
+  // Initial check for active review
+  updateFinalizeButtonVisibility();
+
   document.body.appendChild(widget);
+  
+  return widget;
+};
+
+let widgetElement: HTMLElement | null = null;
+
+export const createWidgetWithTracking = () => {
+  // Remove existing widget if it exists
+  if (widgetElement) {
+    widgetElement.remove();
+  }
+  
+  widgetElement = createWidget();
+  return widgetElement;
+};
+
+export const removeWidget = () => {
+  if (widgetElement) {
+    widgetElement.remove();
+    widgetElement = null;
+  }
 };
