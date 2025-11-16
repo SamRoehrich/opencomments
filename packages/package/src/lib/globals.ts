@@ -79,29 +79,10 @@ const handleEscapeKey = (e: KeyboardEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
-    // First, check if there's a comment dialog open and close it
-    const commentDialog = document.querySelector('.opencomments-comment-dialog') as HTMLElement;
-    if (commentDialog) {
-      commentDialog.remove();
-      // Clean up any event listeners by removing and re-adding would be handled by the dialog itself
+    // First, check if there's a dialog open and close it
+    if ((window as any).OpenComments?.dialog?.element) {
+      (window as any).OpenComments.dialog.remove();
       return; // Don't exit comment mode, just close the dialog
-    }
-    
-    // Check if there's a comment form open and close it
-    const commentForm = document.querySelector('.opencomments-create-form') as HTMLElement;
-    if (commentForm) {
-      // Remove the form and clean up click-outside listener
-      if (commentForm.parentNode) {
-        commentForm.parentNode.removeChild(commentForm);
-      }
-      return; // Don't exit comment mode, just close the form
-    }
-    
-    // Check if there's a settings dialog open and close it
-    const settingsDialog = document.querySelector('.opencomments-settings-dialog') as HTMLElement;
-    if (settingsDialog) {
-      settingsDialog.remove();
-      return; // Don't exit comment mode, just close the settings dialog
     }
     
     // If no dialogs are open and we're in comment mode, exit comment mode

@@ -1,6 +1,4 @@
 import "./style.css";
-import { createWidget } from "./ui/widget.ts";
-import { renderAllIssues } from "./lib/render-all-issues.ts";
+import { init } from "./index.ts";
+init();
 
-createWidget();
-(async () => await renderAllIssues())()

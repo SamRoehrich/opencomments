@@ -3,9 +3,6 @@ import type { Issue, Comment } from "@opencomments/types";
 import { renderAllIssues } from "../lib/render-all-issues";
 import { getUserSettings } from "./widget";
 
-// Store reference to existing dialog to remove it when opening a new one
-let existingDialog: HTMLElement | null = null;
-
 export const comment = ({
   issue,
   commentElementId,
@@ -16,10 +13,7 @@ export const comment = ({
   position?: { x: number; y: number };
 }) => {
   // Remove existing dialog if it exists
-  if (existingDialog) {
-    existingDialog.remove();
-    existingDialog = null;
-  }
+  (window as any).OpenComments.dialog.remove();
 
   const parent = document.createElement("div");
   parent.className = "opencomments-comment-dialog";
@@ -152,10 +146,7 @@ export const comment = ({
     }
     await renderAllIssues();
     // Remove dialog after resolving
-    if (existingDialog) {
-      existingDialog.remove();
-      existingDialog = null;
-    }
+    (window as any).OpenComments.dialog.remove();
   };
 
   // Comments section
@@ -273,8 +264,7 @@ export const comment = ({
   // Add click outside to close functionality
   const handleClickOutside = (event: MouseEvent) => {
     if (parent && !parent.contains(event.target as Node)) {
-      parent.remove();
-      existingDialog = null;
+      (window as any).OpenComments.dialog.remove();
       document.removeEventListener("click", handleClickOutside);
       document.removeEventListener("keydown", handleEscape);
     }
@@ -285,8 +275,7 @@ export const comment = ({
     if (event.key === "Escape" || event.keyCode === 27) {
       event.preventDefault();
       event.stopPropagation();
-      parent.remove();
-      existingDialog = null;
+      (window as any).OpenComments.dialog.remove();
       document.removeEventListener("click", handleClickOutside);
       document.removeEventListener("keydown", handleEscape);
     }
@@ -346,5 +335,5 @@ export const comment = ({
     document.body.appendChild(parent);
   }
 
-  existingDialog = parent;
+  (window as any).OpenComments.dialog.set(parent);
 };

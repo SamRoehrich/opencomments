@@ -1,6 +1,7 @@
 import { addCreateCommentFormListener } from "../lib/globals";
 import { clearAllIcons } from "../lib/create-comment-button";
 import { renderAllIssues } from "../lib/render-all-issues";
+import { createCommentIcon } from "./comment-icon";
 
 const STORAGE_KEY = "opencomments_settings";
 
@@ -37,14 +38,9 @@ userSettings = loadSettings();
 
 export const getUserSettings = () => userSettings;
 
-let widgetDialog: HTMLElement | null = null;
-
 const openSettingsDialog = () => {
   // Remove existing dialog if it exists
-  if (widgetDialog) {
-    widgetDialog.remove();
-    widgetDialog = null;
-  }
+  (window as any).OpenComments.dialog.remove();
 
   const dialog = document.createElement("div");
   dialog.className = "opencomments-settings-dialog";
@@ -116,8 +112,7 @@ const openSettingsDialog = () => {
     saveSettings(userSettings);
 
     // Close dialog
-    dialog.remove();
-    widgetDialog = null;
+    (window as any).OpenComments.dialog.remove();
   };
 
   const cancelButton = document.createElement("button");
@@ -127,8 +122,7 @@ const openSettingsDialog = () => {
   cancelButton.onclick = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    dialog.remove();
-    widgetDialog = null;
+    (window as any).OpenComments.dialog.remove();
   };
 
   form.appendChild(nameContainer);
@@ -143,8 +137,7 @@ const openSettingsDialog = () => {
   // Click outside to close
   const handleClickOutside = (event: MouseEvent) => {
     if (dialog && !dialog.contains(event.target as Node)) {
-      dialog.remove();
-      widgetDialog = null;
+      (window as any).OpenComments.dialog.remove();
       document.removeEventListener("click", handleClickOutside);
       document.removeEventListener("keydown", handleEscape);
     }
@@ -155,8 +148,7 @@ const openSettingsDialog = () => {
     if (event.key === "Escape" || event.keyCode === 27) {
       event.preventDefault();
       event.stopPropagation();
-      dialog.remove();
-      widgetDialog = null;
+      (window as any).OpenComments.dialog.remove();
       document.removeEventListener("click", handleClickOutside);
       document.removeEventListener("keydown", handleEscape);
     }
@@ -168,34 +160,13 @@ const openSettingsDialog = () => {
   }, 0);
 
   document.body.appendChild(dialog);
-  widgetDialog = dialog;
+  (window as any).OpenComments.dialog.set(dialog);
 
   // Focus name input
   nameInput.focus();
 };
 
 // SVG icons
-const createCommentIcon = () => {
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.setAttribute("width", "14");
-  svg.setAttribute("height", "14");
-  svg.setAttribute("viewBox", "0 0 24 24");
-  svg.setAttribute("fill", "none");
-  svg.setAttribute("stroke", "currentColor");
-  svg.setAttribute("stroke-width", "2");
-  svg.setAttribute("stroke-linecap", "round");
-  svg.setAttribute("stroke-linejoin", "round");
-
-  const path1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path1.setAttribute(
-    "d",
-    "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z",
-  );
-  svg.appendChild(path1);
-
-  return svg;
-};
-
 const createSettingsIcon = () => {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("width", "14");
