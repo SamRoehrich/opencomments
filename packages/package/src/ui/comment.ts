@@ -2,6 +2,14 @@ import { resolveIssue, getComments, createComment } from "../api/comments";
 import type { Issue, Comment } from "@opencomments/types";
 import { renderAllIssues } from "../lib/render-all-issues";
 import { getUserSettings } from "./widget";
+import {
+  createButton,
+  createTextarea,
+  createDiv,
+  createSpan,
+  createScreenshotIcon,
+  createCheckmarkIcon,
+} from "./elements";
 
 export const comment = ({
   issue,
@@ -15,115 +23,71 @@ export const comment = ({
   // Remove existing dialog if it exists
   (window as any).OpenComments.dialog.remove();
 
-  const parent = document.createElement("div");
-  parent.className = "opencomments-comment-dialog";
+  const parent = createDiv({
+    className: "opencomments-comment-dialog",
+  });
 
   // Create screenshot icon button if available
   let screenshotContainer: HTMLElement | null = null;
   if (issue?.screenshot) {
-    screenshotContainer = document.createElement("div");
-    screenshotContainer.className = "opencomments-screenshot-container";
+    const screenshotIcon = createScreenshotIcon({
+      className: "opencomments-screenshot-icon",
+    });
 
-    const imageIconButton = document.createElement("button");
-    imageIconButton.className = "opencomments-screenshot-button";
-    imageIconButton.title = "View screenshot";
+    const imageIconButton = createButton({
+      className: "opencomments-screenshot-button",
+      title: "View screenshot",
+      children: [screenshotIcon],
+      onClick: (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (issue.screenshot) {
+          window.open(issue.screenshot, "_blank");
+        }
+      },
+    });
 
-    // Create image icon SVG
-    const imageIconSvg = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "svg",
-    );
-    imageIconSvg.setAttribute("width", "20");
-    imageIconSvg.setAttribute("height", "20");
-    imageIconSvg.setAttribute("viewBox", "0 0 24 24");
-    imageIconSvg.setAttribute("fill", "none");
-    imageIconSvg.setAttribute("stroke", "currentColor");
-    imageIconSvg.setAttribute("stroke-width", "2");
-    imageIconSvg.setAttribute("stroke-linecap", "round");
-    imageIconSvg.setAttribute("stroke-linejoin", "round");
-    imageIconSvg.setAttribute("class", "opencomments-screenshot-icon");
+    const imageLabel = createSpan({
+      className: "opencomments-screenshot-label",
+      text: "View screenshot",
+      onClick: () => {
+        if (issue.screenshot) {
+          window.open(issue.screenshot, "_blank");
+        }
+      },
+    });
 
-    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-    rect.setAttribute("x", "3");
-    rect.setAttribute("y", "3");
-    rect.setAttribute("width", "18");
-    rect.setAttribute("height", "18");
-    rect.setAttribute("rx", "2");
-    rect.setAttribute("ry", "2");
-    imageIconSvg.appendChild(rect);
-
-    const circle1 = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "circle",
-    );
-    circle1.setAttribute("cx", "9");
-    circle1.setAttribute("cy", "9");
-    circle1.setAttribute("r", "2");
-    imageIconSvg.appendChild(circle1);
-
-    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    path.setAttribute("d", "M21 15l-3.086-3.086a2 2 0 0 0-2.828 0L6 21");
-    imageIconSvg.appendChild(path);
-
-    imageIconButton.appendChild(imageIconSvg);
-
-    imageIconButton.onclick = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      if (issue.screenshot) {
-        window.open(issue.screenshot, "_blank");
-      }
-    };
-
-    screenshotContainer.appendChild(imageIconButton);
-
-    const imageLabel = document.createElement("span");
-    imageLabel.className = "opencomments-screenshot-label";
-    imageLabel.textContent = "View screenshot";
-    imageLabel.onclick = () => {
-      if (issue.screenshot) {
-        window.open(issue.screenshot, "_blank");
-      }
-    };
-    screenshotContainer.appendChild(imageLabel);
+    screenshotContainer = createDiv({
+      className: "opencomments-screenshot-container",
+      children: [imageIconButton, imageLabel],
+    });
   }
 
   // Create comment text display
-  const commentText = document.createElement("div");
-  commentText.className = "opencomments-comment-text";
-  commentText.textContent = issue?.description || "No description";
+  const commentText = createDiv({
+    className: "opencomments-comment-text",
+    text: issue?.description || "No description",
+  });
 
   // Create resolve button as a circle with green check
-  const resolveButton = document.createElement("button");
-  resolveButton.className = `opencomments-resolve-button${issue?.resolved ? " opencomments-resolve-button--resolved" : ""}`;
+  const checkmarkIcon = createCheckmarkIcon({
+    className: "opencomments-resolve-checkmark",
+    fill: issue.resolved ? "white" : "#4caf50",
+  });
 
-  // Create checkmark SVG
-  const checkmarkSvg = document.createElementNS(
-    "http://www.w3.org/2000/svg",
-    "svg",
-  );
-  checkmarkSvg.setAttribute("width", "20");
-  checkmarkSvg.setAttribute("height", "20");
-  checkmarkSvg.setAttribute("viewBox", "0 0 24 24");
-  checkmarkSvg.setAttribute("class", "opencomments-resolve-checkmark");
-
-  const checkmarkPath = document.createElementNS(
-    "http://www.w3.org/2000/svg",
-    "path",
-  );
-  checkmarkPath.setAttribute(
-    "d",
-    "M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z",
-  );
-  checkmarkPath.setAttribute("fill", issue.resolved ? "white" : "#4caf50");
-  checkmarkSvg.appendChild(checkmarkPath);
-
-  resolveButton.appendChild(checkmarkSvg);
+  const resolveButton = createButton({
+    className: [
+      "opencomments-resolve-button",
+      issue?.resolved ? "opencomments-resolve-button--resolved" : "",
+    ].filter(Boolean),
+    children: [checkmarkIcon],
+  });
 
   // Button container for alignment
-  const buttonContainer = document.createElement("div");
-  buttonContainer.className = "opencomments-resolve-button-container";
-  buttonContainer.appendChild(resolveButton);
+  const buttonContainer = createDiv({
+    className: "opencomments-resolve-button-container",
+    children: [resolveButton],
+  });
 
   resolveButton.onclick = async (e) => {
     e.stopPropagation();
@@ -133,7 +97,10 @@ export const comment = ({
       // Update button appearance
       resolveButton.className =
         "opencomments-resolve-button opencomments-resolve-button--resolved";
-      checkmarkPath.setAttribute("fill", "white");
+      const checkmarkPath = checkmarkIcon.querySelector("path");
+      if (checkmarkPath) {
+        checkmarkPath.setAttribute("fill", "white");
+      }
 
       // Hide the icon
       if (typeof document.getElementById(commentElementId) !== "undefined") {
@@ -142,7 +109,10 @@ export const comment = ({
     } else {
       // Update button appearance when unresolved
       resolveButton.className = "opencomments-resolve-button";
-      checkmarkPath.setAttribute("fill", "#4caf50");
+      const checkmarkPath = checkmarkIcon.querySelector("path");
+      if (checkmarkPath) {
+        checkmarkPath.setAttribute("fill", "#4caf50");
+      }
     }
     await renderAllIssues();
     // Remove dialog after resolving
@@ -150,27 +120,34 @@ export const comment = ({
   };
 
   // Comments section
-  const commentsSection = document.createElement("div");
-  commentsSection.className = "opencomments-comments-section";
+  const commentsSection = createDiv({
+    className: "opencomments-comments-section",
+  });
 
-  const commentsTitle = document.createElement("div");
-  commentsTitle.className = "opencomments-comments-title";
-  commentsTitle.textContent = "Comments";
+  const commentsTitle = createDiv({
+    className: "opencomments-comments-title",
+    text: "Comments",
+  });
 
-  const commentsList = document.createElement("div");
-  commentsList.className = "opencomments-comments-list";
+  const commentsList = createDiv({
+    className: "opencomments-comments-list",
+  });
 
   // Comment form
-  const commentForm = document.createElement("div");
-  commentForm.className = "opencomments-comment-form";
+  const commentInput = createTextarea({
+    className: "opencomments-comment-input",
+    placeholder: "Add a comment...",
+  });
 
-  const commentInput = document.createElement("textarea");
-  commentInput.className = "opencomments-comment-input";
-  commentInput.placeholder = "Add a comment...";
+  const submitCommentButton = createButton({
+    className: "opencomments-submit-comment-button",
+    text: "Post Comment",
+  });
 
-  const submitCommentButton = document.createElement("button");
-  submitCommentButton.className = "opencomments-submit-comment-button";
-  submitCommentButton.textContent = "Post Comment";
+  const commentForm = createDiv({
+    className: "opencomments-comment-form",
+    children: [commentInput, submitCommentButton],
+  });
 
   const renderComments = async () => {
     try {
@@ -178,26 +155,29 @@ export const comment = ({
       commentsList.innerHTML = "";
 
       if (comments.length === 0) {
-        const noComments = document.createElement("div");
-        noComments.className = "opencomments-no-comments";
-        noComments.textContent = "No comments yet";
+        const noComments = createDiv({
+          className: "opencomments-no-comments",
+          text: "No comments yet",
+        });
         commentsList.appendChild(noComments);
       } else {
         comments.forEach((comment: Comment) => {
-          const commentItem = document.createElement("div");
-          commentItem.className = "opencomments-comment-item";
+          const commentText = createDiv({
+            className: "opencomments-comment-item-text",
+            text: comment.comment,
+          });
 
-          const commentText = document.createElement("div");
-          commentText.className = "opencomments-comment-item-text";
-          commentText.textContent = comment.comment;
-
-          const commentMeta = document.createElement("div");
-          commentMeta.className = "opencomments-comment-item-meta";
           const date = new Date(comment.created_at);
-          commentMeta.textContent = `By ${comment.user_id} • ${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+          const commentMeta = createDiv({
+            className: "opencomments-comment-item-meta",
+            text: `By ${comment.user_id} • ${date.toLocaleDateString()} ${date.toLocaleTimeString()}`,
+          });
 
-          commentItem.appendChild(commentText);
-          commentItem.appendChild(commentMeta);
+          const commentItem = createDiv({
+            className: "opencomments-comment-item",
+            children: [commentText, commentMeta],
+          });
+
           commentsList.appendChild(commentItem);
         });
       }
@@ -243,20 +223,16 @@ export const comment = ({
     }
   };
 
-  commentForm.appendChild(commentInput);
-  commentForm.appendChild(submitCommentButton);
-
   commentsSection.appendChild(commentsTitle);
   commentsSection.appendChild(commentsList);
   commentsSection.appendChild(commentForm);
 
   // Add elements to dialog in order: screenshot, comment text, button, comments
+  const dialogChildren: HTMLElement[] = [commentText, buttonContainer, commentsSection];
   if (screenshotContainer) {
-    parent.appendChild(screenshotContainer);
+    dialogChildren.unshift(screenshotContainer);
   }
-  parent.appendChild(commentText);
-  parent.appendChild(buttonContainer);
-  parent.appendChild(commentsSection);
+  dialogChildren.forEach(child => parent.appendChild(child));
 
   // Load comments
   renderComments();

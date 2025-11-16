@@ -93,33 +93,33 @@ const handleEscapeKey = (e: KeyboardEvent) => {
 };
 
 
+import { createOverlay as createOverlayElement } from "../ui/elements/overlay";
+
 const createOverlay = () => {
-  const overlay = document.createElement("div");
-  overlay.style.position = "fixed";
-  overlay.style.top = "0";
-  overlay.style.left = "0";
-  overlay.style.width = "100%";
-  overlay.style.height = "100%";
-  overlay.style.zIndex = "9997"; // Below widget (9998) but above everything else
-  overlay.style.cursor = createCommentCursor();
-  overlay.style.backgroundColor = "transparent";
-  overlay.style.pointerEvents = "auto";
+  const overlay = createOverlayElement({
+    zIndex: 9997, // Below widget (9998) but above everything else
+    cursor: createCommentCursor(),
+    backgroundColor: "transparent",
+    onMouseDown: (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      // Call the actual handler
+      handleMouseDown(e);
+    },
+    onClick: (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+    },
+    onKeyDown: (e) => {
+      if (e.key === "Escape" || e.keyCode === 27) {
+        handleEscapeKey(e);
+      }
+    },
+  });
   
   // Prevent all interactions
-  overlay.onmousedown = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    e.stopImmediatePropagation();
-    // Call the actual handler
-    handleMouseDown(e);
-  };
-  
-  overlay.onclick = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    e.stopImmediatePropagation();
-  };
-  
   overlay.oncontextmenu = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -151,16 +151,6 @@ const createOverlay = () => {
     e.stopPropagation();
     e.stopImmediatePropagation();
   };
-  
-  // Handle Escape key on overlay as well
-  overlay.onkeydown = (e) => {
-    if (e.key === "Escape" || e.keyCode === 27) {
-      handleEscapeKey(e);
-    }
-  };
-  
-  // Make overlay focusable for keyboard events
-  overlay.setAttribute("tabindex", "-1");
   
   return overlay;
 };

@@ -2,28 +2,7 @@ import type { Issue } from "@opencomments/types";
 import { getIssue } from "../api/comments";
 import { comment } from "../ui/comment";
 import { getElementByXPath } from "./get-element-by-xpath";
-
-// Create comment icon SVG (same as widget)
-const createCommentIconSVG = () => {
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.setAttribute("width", "14");
-  svg.setAttribute("height", "14");
-  svg.setAttribute("viewBox", "0 0 24 24");
-  svg.setAttribute("fill", "none");
-  svg.setAttribute("stroke", "currentColor");
-  svg.setAttribute("stroke-width", "2");
-  svg.setAttribute("stroke-linecap", "round");
-  svg.setAttribute("stroke-linejoin", "round");
-
-  const path1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path1.setAttribute(
-    "d",
-    "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z",
-  );
-  svg.appendChild(path1);
-
-  return svg;
-};
+import { createCommentIcon, createDiv } from "../ui/elements";
 
 // Store resize handler to avoid multiple listeners
 let resizeHandler: (() => void) | null = null;
@@ -136,15 +115,15 @@ export const createCommentButton = (issue: Issue) => {
       iconElements.delete(issue.id);
     }
 
-    const dialogEl = document.createElement("div");
-    dialogEl.id = issue.id.toString();
-    dialogEl.className = "opencomments-comment-icon";
-
     // Create and append the comment icon SVG (same as widget)
-    const iconSvg = createCommentIconSVG();
-    dialogEl.appendChild(iconSvg);
+    const iconSvg = createCommentIcon();
 
-    dialogEl.onclick = (e) => handleCommentIconClick(issue.id, e);
+    const dialogEl = createDiv({
+      id: issue.id.toString(),
+      className: "opencomments-comment-icon",
+      children: [iconSvg],
+      onClick: (e) => handleCommentIconClick(issue.id, e),
+    });
 
     parentElement.appendChild(dialogEl);
 

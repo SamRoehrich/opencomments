@@ -1,13 +1,12 @@
-import { createCommentIcon } from "./comment-icon";
+import { createButton, createCommentIcon } from "./elements";
 
 export const createBaseWidget = () => {
-  const reviewButton = document.createElement("button");
-  reviewButton.className =
-    "opencomments-widget-button opencomments-widget-button--comment";
-
-  const reviewIcon = createCommentIcon();
-  reviewIcon.setAttribute("class", "opencomments-widget-icon");
-  reviewButton.appendChild(reviewIcon);
+  const reviewIcon = createCommentIcon({ className: "opencomments-widget-icon" });
+  
+  const reviewButton = createButton({
+    className: ["opencomments-widget-button", "opencomments-widget-button--comment"],
+    children: [reviewIcon],
+  });
 
   document.body.appendChild(reviewButton);
 };

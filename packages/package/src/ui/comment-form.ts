@@ -5,6 +5,12 @@ import {
 import { renderAllIssues } from "../lib/render-all-issues";
 import type { ElementPositionMeta } from "../lib/types";
 import { captureViewportScreenshot } from "../lib/capture-screenshot";
+import {
+  createButton,
+  createTextarea,
+  createForm,
+  createDiv,
+} from "./elements";
 
 export const createCommentForm = (args: ElementPositionMeta) => {
   removeCreateCommentFormListener();
@@ -12,8 +18,11 @@ export const createCommentForm = (args: ElementPositionMeta) => {
   // Remove existing dialog if it exists
   (window as any).OpenComments.dialog.remove();
   
-  const parent = document.createElement("div");
-  parent.className = "opencomments-create-form";
+  const parent = createDiv({
+    className: args.clickPosition 
+      ? "opencomments-create-form" 
+      : ["opencomments-create-form", "opencomments-create-form--centered"],
+  });
   
   // Position the form below where the user clicked
   if (args.clickPosition) {
@@ -49,19 +58,17 @@ export const createCommentForm = (args: ElementPositionMeta) => {
     }
   } else {
     // Fallback to center if no position provided
-    parent.className = "opencomments-create-form opencomments-create-form--centered";
     document.body.appendChild(parent);
   }
 
-  const form = document.createElement("form");
-  form.className = "opencomments-create-form-inner";
+  const input = createTextarea({
+    className: "opencomments-create-form-textarea",
+    placeholder: "Enter your comment...",
+  });
 
-  const input = document.createElement("textarea");
-  input.className = "opencomments-create-form-textarea";
-  input.placeholder = "Enter your comment...";
-
-  const buttonContainer = document.createElement("div");
-  buttonContainer.className = "opencomments-create-form-button-container";
+  const buttonContainer = createDiv({
+    className: "opencomments-create-form-button-container",
+  });
 
   // Define handlers first so they're available for all button handlers
   const handleClickOutside = (event: MouseEvent) => {
@@ -87,11 +94,8 @@ export const createCommentForm = (args: ElementPositionMeta) => {
     }
   };
 
-  const submitButton = document.createElement("button");
-  submitButton.className = "opencomments-create-form-button--submit";
-  submitButton.innerHTML = "Comment";
-  
   // Add Command+Enter (Mac) or Ctrl+Enter (Windows/Linux) to submit
+  let submitButton: HTMLButtonElement;
   const handleSubmitShortcut = (event: KeyboardEvent) => {
     // Check for Enter key
     if (event.key === "Enter" || event.keyCode === 13) {
@@ -107,28 +111,35 @@ export const createCommentForm = (args: ElementPositionMeta) => {
       }
     }
   };
-  
-  submitButton.onclick = (e) => handleButtonClick(e, input, args, parent, submitButton, handleSubmitShortcut, handleClickOutside, handleEscape);
 
-  const cancelButton = document.createElement("button");
-  cancelButton.className = "opencomments-create-form-button--cancel";
-  cancelButton.innerHTML = "Cancel";
-  
-  cancelButton.onclick = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    (window as any).OpenComments.dialog.remove();
-    document.removeEventListener('mousedown', handleClickOutside);
-    document.removeEventListener('keydown', handleEscape);
-    input.removeEventListener('keydown', handleSubmitShortcut);
-    // Go back to normal mode - don't re-add listener
-  };
+  submitButton = createButton({
+    className: "opencomments-create-form-button--submit",
+    innerHTML: "Comment",
+    onClick: (e) => handleButtonClick(e, input, args, parent, submitButton, handleSubmitShortcut, handleClickOutside, handleEscape),
+  });
+
+  const cancelButton = createButton({
+    className: "opencomments-create-form-button--cancel",
+    innerHTML: "Cancel",
+    onClick: (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      (window as any).OpenComments.dialog.remove();
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+      input.removeEventListener('keydown', handleSubmitShortcut);
+      // Go back to normal mode - don't re-add listener
+    },
+  });
 
   buttonContainer.appendChild(cancelButton);
   buttonContainer.appendChild(submitButton);
 
-  form.appendChild(input);
-  form.appendChild(buttonContainer);
+  const form = createForm({
+    className: "opencomments-create-form-inner",
+    children: [input, buttonContainer],
+  });
+
   parent.appendChild(form);
   
   // Add keyboard shortcut listener to textarea
