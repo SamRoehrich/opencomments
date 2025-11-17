@@ -5,6 +5,7 @@ A distributable widget that can be embedded on any website via a script tag.
 ## Building
 
 ```bash
+cd packages/package
 bun run build
 ```
 
@@ -289,12 +290,15 @@ Update the API base URL after initialization.
 
 ```bash
 # Development server
+cd packages/package
 bun run dev
 
 # Build for production
+cd packages/package
 bun run build
 
 # Preview build
+cd packages/package
 bun run preview
 ```
 
