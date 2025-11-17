@@ -112,6 +112,7 @@ export const openReviewDialog = () => {
           description: description || undefined,
           user_id: userName,
           env_id: env,
+          status: "active",
         });
 
         // Store active review in localStorage

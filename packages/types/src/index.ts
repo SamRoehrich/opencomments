@@ -7,6 +7,7 @@ export type Review = {
   updated_at: Date;
   user_id: string;
   env_id: string | null;
+  status: string | null;
 };
 
 export type ReviewInsert = {
@@ -14,6 +15,7 @@ export type ReviewInsert = {
   description?: string;
   user_id: string;
   env_id?: string;
+  status: string;
 };
 
 export type ReviewUpdate = Partial<Omit<ReviewInsert, "name">> & {

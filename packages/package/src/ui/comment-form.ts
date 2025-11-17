@@ -153,7 +153,7 @@ async function handleButtonClick(
   e: PointerEvent,
   input: HTMLTextAreaElement,
   elementInfo: ElementPositionMeta,
-  parent: HTMLDivElement,
+  _parent: HTMLElement,
   submitButton: HTMLButtonElement,
   handleClickOutside: (event: MouseEvent) => void,
   handleEscape: (event: KeyboardEvent) => void,

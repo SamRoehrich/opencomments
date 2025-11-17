@@ -52,13 +52,13 @@ export const addDialogSubmitShortcut = (
 
   // Add listeners to all form inputs
   formInputs.forEach(input => {
-    input.addEventListener('keydown', handleSubmitShortcut);
+    input.addEventListener('keydown', handleSubmitShortcut as EventListener);
   });
 
   // Return cleanup function
   return () => {
     formInputs.forEach(input => {
-      input.removeEventListener('keydown', handleSubmitShortcut);
+      input.removeEventListener('keydown', handleSubmitShortcut as EventListener);
     });
   };
 };

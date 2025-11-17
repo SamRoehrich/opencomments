@@ -1,6 +1,4 @@
 import { addCreateCommentFormListener } from "../lib/globals";
-import { clearAllIcons } from "../lib/create-comment-button";
-import { renderAllIssues } from "../lib/render-all-issues";
 import {
   createButton,
   createInput,
@@ -9,7 +7,6 @@ import {
   createH2,
   createCommentIcon,
   createSettingsIcon,
-  createRefreshIcon,
   createCheckmarkIcon,
   addDialogSubmitShortcut,
   createCloseIcon,

@@ -12,7 +12,7 @@ export interface OpenCommentsConfig {
 }
 
 let config: OpenCommentsConfig = {
-  apiUrl: "https://api.opencomments.io",
+  apiUrl: "https://api.asyncreview.com",
   autoInit: true,
 };
 
