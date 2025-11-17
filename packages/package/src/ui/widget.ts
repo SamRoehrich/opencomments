@@ -1,6 +1,22 @@
 import { addCreateCommentFormListener } from "../lib/globals";
 import { clearAllIcons } from "../lib/create-comment-button";
 import { renderAllIssues } from "../lib/render-all-issues";
+import {
+  createButton,
+  createInput,
+  createLabel,
+  createDiv,
+  createH2,
+  createCommentIcon,
+  createSettingsIcon,
+  createRefreshIcon,
+  createCheckmarkIcon,
+  addDialogSubmitShortcut,
+  createCloseIcon,
+} from "./elements";
+import { getActiveReview, setActiveReview, openReviewDialog } from "./review-dialog";
+import { finalizeReview } from "./finalize-review";
+import { getReviews } from "../api/reviews";
 
 const STORAGE_KEY = "opencomments_settings";
 
@@ -24,9 +40,10 @@ const loadSettings = (): { name: string; env: string } | null => {
 };
 
 // Save settings to localStorage
-const saveSettings = (settings: { name: string; env: string }) => {
+export const saveSettings = (settings: { name: string; env: string }) => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    userSettings = settings;
   } catch (error) {
     console.error("Failed to save settings to localStorage:", error);
   }
@@ -37,114 +54,112 @@ userSettings = loadSettings();
 
 export const getUserSettings = () => userSettings;
 
-let widgetDialog: HTMLElement | null = null;
-
 const openSettingsDialog = () => {
   // Remove existing dialog if it exists
-  if (widgetDialog) {
-    widgetDialog.remove();
-    widgetDialog = null;
-  }
+  (window as any).OpenComments.dialog.remove();
 
-  const dialog = document.createElement("div");
-  dialog.className = "opencomments-settings-dialog";
-
-  const title = document.createElement("h2");
-  title.className = "opencomments-settings-dialog-title";
-  title.textContent = "Settings";
-
-  const form = document.createElement("div");
-  form.className = "opencomments-settings-form";
-
-  // Name input
-  const nameLabel = document.createElement("label");
-  nameLabel.className = "opencomments-settings-label";
-  nameLabel.textContent = "Your Name";
-
-  const nameInput = document.createElement("input");
-  nameInput.type = "text";
-  nameInput.className = "opencomments-settings-input";
-  nameInput.placeholder = "Enter your name";
-  // Load from localStorage if available
   const storedSettings = loadSettings();
-  nameInput.value = storedSettings?.name || "";
 
-  const nameContainer = document.createElement("div");
-  nameContainer.className = "opencomments-settings-input-container";
-  nameContainer.appendChild(nameLabel);
-  nameContainer.appendChild(nameInput);
+  const nameInput = createInput({
+    type: "text",
+    className: "opencomments-settings-input",
+    placeholder: "Enter your name",
+    value: storedSettings?.name || "",
+  });
 
-  // Env input
-  const envLabel = document.createElement("label");
-  envLabel.className = "opencomments-settings-label";
-  envLabel.textContent = "Environment";
+  const envInput = createInput({
+    type: "text",
+    className: "opencomments-settings-input",
+    placeholder: "e.g., production, staging, dev",
+    value: storedSettings?.env || "",
+  });
 
-  const envInput = document.createElement("input");
-  envInput.type = "text";
-  envInput.className = "opencomments-settings-input";
-  envInput.placeholder = "e.g., production, staging, dev";
-  // Load from localStorage if available
-  envInput.value = storedSettings?.env || "";
+  const saveButton = createButton({
+    className: "opencomments-settings-button--save",
+    text: "Save",
+    onClick: (e) => {
+      e.preventDefault();
+      e.stopPropagation();
 
-  const envContainer = document.createElement("div");
-  envContainer.className = "opencomments-settings-input-container";
-  envContainer.appendChild(envLabel);
-  envContainer.appendChild(envInput);
+      const name = nameInput.value.trim();
+      const env = envInput.value.trim();
 
-  // Button container
-  const buttonContainer = document.createElement("div");
-  buttonContainer.className = "opencomments-settings-button-container";
+      if (!name || !env) {
+        alert("Please fill in both name and environment");
+        return;
+      }
 
-  const saveButton = document.createElement("button");
-  saveButton.className = "opencomments-settings-button--save";
-  saveButton.textContent = "Save";
+      // Save settings
+      userSettings = { name, env };
+      saveSettings(userSettings);
 
-  saveButton.onclick = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+      // Cleanup keyboard shortcut listeners
+      cleanupSubmitShortcut();
 
-    const name = nameInput.value.trim();
-    const env = envInput.value.trim();
+      // Close dialog
+      (window as any).OpenComments.dialog.remove();
+    },
+  });
 
-    if (!name || !env) {
-      alert("Please fill in both name and environment");
-      return;
-    }
+  const cancelButton = createButton({
+    className: "opencomments-settings-button--cancel",
+    text: "Cancel",
+    onClick: (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      cleanupSubmitShortcut();
+      (window as any).OpenComments.dialog.remove();
+    },
+  });
 
-    // Save settings
-    userSettings = { name, env };
-    saveSettings(userSettings);
+  const nameLabel = createLabel({
+    className: "opencomments-settings-label",
+    text: "Your Name",
+  });
 
-    // Close dialog
-    dialog.remove();
-    widgetDialog = null;
-  };
+  const envLabel = createLabel({
+    className: "opencomments-settings-label",
+    text: "Environment",
+  });
 
-  const cancelButton = document.createElement("button");
-  cancelButton.className = "opencomments-settings-button--cancel";
-  cancelButton.textContent = "Cancel";
+  const nameContainer = createDiv({
+    className: "opencomments-settings-input-container",
+    children: [nameLabel, nameInput],
+  });
 
-  cancelButton.onclick = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dialog.remove();
-    widgetDialog = null;
-  };
+  const envContainer = createDiv({
+    className: "opencomments-settings-input-container",
+    children: [envLabel, envInput],
+  });
 
-  form.appendChild(nameContainer);
-  form.appendChild(envContainer);
-  buttonContainer.appendChild(cancelButton);
-  buttonContainer.appendChild(saveButton);
-  form.appendChild(buttonContainer);
+  const buttonContainer = createDiv({
+    className: "opencomments-settings-button-container",
+    children: [cancelButton, saveButton],
+  });
 
-  dialog.appendChild(title);
-  dialog.appendChild(form);
+  const form = createDiv({
+    className: "opencomments-settings-form",
+    children: [nameContainer, envContainer, buttonContainer],
+  });
+
+  const title = createH2({
+    className: "opencomments-settings-dialog-title",
+    text: "Settings",
+  });
+
+  const dialog = createDiv({
+    className: "opencomments-settings-dialog",
+    children: [title, form],
+  });
+
+  // Add keyboard shortcut support
+  const cleanupSubmitShortcut = addDialogSubmitShortcut(dialog, saveButton);
 
   // Click outside to close
   const handleClickOutside = (event: MouseEvent) => {
     if (dialog && !dialog.contains(event.target as Node)) {
-      dialog.remove();
-      widgetDialog = null;
+      cleanupSubmitShortcut();
+      (window as any).OpenComments.dialog.remove();
       document.removeEventListener("click", handleClickOutside);
       document.removeEventListener("keydown", handleEscape);
     }
@@ -155,8 +170,8 @@ const openSettingsDialog = () => {
     if (event.key === "Escape" || event.keyCode === 27) {
       event.preventDefault();
       event.stopPropagation();
-      dialog.remove();
-      widgetDialog = null;
+      cleanupSubmitShortcut();
+      (window as any).OpenComments.dialog.remove();
       document.removeEventListener("click", handleClickOutside);
       document.removeEventListener("keydown", handleEscape);
     }
@@ -168,171 +183,382 @@ const openSettingsDialog = () => {
   }, 0);
 
   document.body.appendChild(dialog);
-  widgetDialog = dialog;
+  (window as any).OpenComments.dialog.set(dialog);
 
   // Focus name input
   nameInput.focus();
 };
 
-// SVG icons
-const createCommentIcon = () => {
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.setAttribute("width", "14");
-  svg.setAttribute("height", "14");
-  svg.setAttribute("viewBox", "0 0 24 24");
-  svg.setAttribute("fill", "none");
-  svg.setAttribute("stroke", "currentColor");
-  svg.setAttribute("stroke-width", "2");
-  svg.setAttribute("stroke-linecap", "round");
-  svg.setAttribute("stroke-linejoin", "round");
 
-  const path1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path1.setAttribute(
-    "d",
-    "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z",
-  );
-  svg.appendChild(path1);
+let widgetElement: HTMLElement | null = null;
+let commentButton: HTMLElement | null = null;
+let settingsButton: HTMLElement | null = null;
+let finalizeButton: HTMLElement | null = null;
+let reviewSelectionButton: HTMLElement | null = null;
+let isReviewListExpanded = false;
+let expandedContent: HTMLElement | null = null;
+let handleKeyboardShortcuts: ((e: KeyboardEvent) => void) | null = null;
 
-  return svg;
+const loadReviewsIntoList = async (reviewListContainer: HTMLElement) => {
+  reviewListContainer.innerHTML = "";
+  
+  const loadingText = createDiv({
+    className: "opencomments-base-widget-loading",
+    text: "Loading reviews...",
+  });
+  reviewListContainer.appendChild(loadingText);
+
+  const settings = getUserSettings();
+  const envId = settings?.env;
+
+  let reviews: any[] = [];
+
+  try {
+    reviews = await getReviews(envId);
+  } catch (error) {
+    console.error("Failed to load reviews:", error);
+    reviewListContainer.innerHTML = "";
+    const errorText = createDiv({
+      className: "opencomments-base-widget-error",
+      text: "Failed to load reviews",
+    });
+    reviewListContainer.appendChild(errorText);
+    return;
+  }
+
+  reviewListContainer.innerHTML = "";
+
+  if (reviews.length === 0) {
+    const noReviewsText = createDiv({
+      className: "opencomments-base-widget-empty",
+      text: "No reviews found",
+    });
+    reviewListContainer.appendChild(noReviewsText);
+    return;
+  }
+
+  reviews.forEach((review) => {
+    const reviewItem = createDiv({
+      className: "opencomments-base-widget-review-item",
+    });
+
+    const reviewName = createDiv({
+      className: "opencomments-base-widget-review-name",
+      text: review.name,
+    });
+
+    const reviewDescription = review.description
+      ? createDiv({
+          className: "opencomments-base-widget-review-description",
+          text: review.description,
+        })
+      : null;
+
+    const reviewMeta = createDiv({
+      className: "opencomments-base-widget-review-meta",
+      text: new Date(review.created_at).toLocaleDateString(),
+    });
+
+    reviewItem.appendChild(reviewName);
+    if (reviewDescription) {
+      reviewItem.appendChild(reviewDescription);
+    }
+    reviewItem.appendChild(reviewMeta);
+
+    reviewItem.onclick = async (e) => {
+      e.stopPropagation();
+
+      // Set active review
+      setActiveReview({
+        id: review.id,
+        name: review.name,
+        description: review.description || undefined,
+        env_id: review.env_id || undefined,
+      });
+
+      // Collapse widget
+      collapseReviewList();
+
+      // Switch to viewer mode for existing reviews (not reviewer mode)
+      window.dispatchEvent(new CustomEvent("review-selected", { detail: review }));
+    };
+
+    reviewListContainer.appendChild(reviewItem);
+  });
 };
 
-const createSettingsIcon = () => {
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.setAttribute("width", "14");
-  svg.setAttribute("height", "14");
-  svg.setAttribute("viewBox", "0 0 24 24");
-  svg.setAttribute("fill", "none");
-  svg.setAttribute("stroke", "currentColor");
-  svg.setAttribute("stroke-width", "2");
-  svg.setAttribute("stroke-linecap", "round");
-  svg.setAttribute("stroke-linejoin", "round");
+const expandReviewList = async () => {
+  if (isReviewListExpanded || !widgetElement) return;
+  isReviewListExpanded = true;
 
-  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path.setAttribute(
-    "d",
-    "M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z",
-  );
-  svg.appendChild(path);
+  // Add expanded class - works with both widget classes
+  widgetElement.classList.add("opencomments-base-widget--expanded");
+  widgetElement.style.position = "relative";
 
-  const circle = document.createElementNS(
-    "http://www.w3.org/2000/svg",
-    "circle",
-  );
-  circle.setAttribute("cx", "12");
-  circle.setAttribute("cy", "12");
-  circle.setAttribute("r", "3");
-  svg.appendChild(circle);
+  expandedContent = createDiv({
+    className: "opencomments-base-widget-expanded",
+  });
 
-  return svg;
+  const headerContainer = createDiv({
+    className: "opencomments-base-widget-header",
+  });
+
+  const reviewsText = createDiv({
+    className: "opencomments-base-widget-reviews-text",
+    text: "Reviews",
+  });
+
+  const closeButton = createButton({
+    className: "opencomments-base-widget-close-button",
+    children: [createCloseIcon({ className: "opencomments-base-widget-close-icon", width: "12", height: "12" })],
+    onClick: (e) => {
+      e.stopPropagation();
+      collapseReviewList();
+    },
+  });
+
+  headerContainer.appendChild(reviewsText);
+  headerContainer.appendChild(closeButton);
+
+  const reviewListContainer = createDiv({
+    className: "opencomments-base-widget-review-list",
+  });
+
+  const createNewButton = createButton({
+    className: "opencomments-base-widget-create-button",
+    text: "Start New Review",
+    onClick: (e) => {
+      e.stopPropagation();
+      collapseReviewList();
+      openReviewDialog();
+    },
+  });
+
+  expandedContent.appendChild(headerContainer);
+  expandedContent.appendChild(reviewListContainer);
+  expandedContent.appendChild(createNewButton);
+
+  widgetElement.appendChild(expandedContent);
+
+  await loadReviewsIntoList(reviewListContainer);
+
+  // Add click outside handler
+  const handleClickOutside = (event: MouseEvent) => {
+    if (widgetElement && !widgetElement.contains(event.target as Node)) {
+      collapseReviewList();
+      document.removeEventListener("click", handleClickOutside);
+    }
+  };
+
+  setTimeout(() => {
+    document.addEventListener("click", handleClickOutside);
+  }, 0);
 };
 
-const createRefreshIcon = () => {
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.setAttribute("width", "14");
-  svg.setAttribute("height", "14");
-  svg.setAttribute("viewBox", "0 0 24 24");
-  svg.setAttribute("fill", "none");
-  svg.setAttribute("stroke", "currentColor");
-  svg.setAttribute("stroke-width", "2");
-  svg.setAttribute("stroke-linecap", "round");
-  svg.setAttribute("stroke-linejoin", "round");
+const collapseReviewList = () => {
+  if (!isReviewListExpanded || !widgetElement) return;
+  isReviewListExpanded = false;
 
-  const path1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path1.setAttribute("d", "M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8");
-  svg.appendChild(path1);
+  widgetElement.classList.remove("opencomments-base-widget--expanded");
+  widgetElement.style.position = "";
+  
+  if (expandedContent) {
+    expandedContent.remove();
+    expandedContent = null;
+  }
+};
 
-  const path2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path2.setAttribute("d", "M21 3v5h-5");
-  svg.appendChild(path2);
+const updateWidgetButtons = () => {
+  if (!widgetElement) return;
 
-  const path3 = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path3.setAttribute(
-    "d",
-    "M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16",
-  );
-  svg.appendChild(path3);
+  // Collapse review list if open
+  collapseReviewList();
 
-  const path4 = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path4.setAttribute("d", "M3 21v-5h5");
-  svg.appendChild(path4);
+  const activeReview = getActiveReview();
 
-  return svg;
+  // Clear all buttons
+  widgetElement.innerHTML = "";
+
+  if (activeReview) {
+    // Review mode: show comment, settings, and finalize buttons
+    const commentIcon = createCommentIcon({ className: "opencomments-widget-icon" });
+    
+    commentButton = createButton({
+      className: ["opencomments-widget-button", "opencomments-widget-button--comment"],
+      children: [commentIcon],
+      onClick: (e) => {
+        e.stopPropagation();
+        const storedSettings = loadSettings();
+        if (storedSettings) {
+          userSettings = storedSettings;
+          addCreateCommentFormListener();
+        } else {
+          openSettingsDialog();
+        }
+      },
+      title: "Add Comment (Press 'c')",
+    });
+
+    const finalizeIcon = createCheckmarkIcon({ 
+      className: "opencomments-widget-icon",
+      width: "14",
+      height: "14",
+    });
+    
+    finalizeButton = createButton({
+      className: ["opencomments-widget-button", "opencomments-widget-button--finalize"],
+      children: [finalizeIcon],
+      title: "Finalize Review (Cmd+Enter)",
+      onClick: (e) => {
+        e.stopPropagation();
+        if (confirm("Are you sure you want to finalize this review? This will end the current review session.")) {
+          finalizeReview();
+        }
+      },
+    });
+
+    const settingsIcon = createSettingsIcon({ className: "opencomments-widget-icon" });
+    
+    settingsButton = createButton({
+      className: ["opencomments-widget-button", "opencomments-widget-button--settings"],
+      children: [settingsIcon],
+      onClick: (e) => {
+        e.stopPropagation();
+        openSettingsDialog();
+      },
+    });
+
+    widgetElement.appendChild(commentButton);
+    widgetElement.appendChild(finalizeButton);
+    widgetElement.appendChild(settingsButton);
+  } else {
+    // No review: show review selection button
+    const reviewIcon = createCommentIcon({ className: "opencomments-widget-icon" });
+    
+    reviewSelectionButton = createButton({
+      className: ["opencomments-widget-button", "opencomments-widget-button--comment"],
+      children: [reviewIcon],
+      onClick: async (e) => {
+        e.stopPropagation();
+        if (isReviewListExpanded) {
+          collapseReviewList();
+        } else {
+          await expandReviewList();
+        }
+      },
+      title: "Select or create a review",
+    });
+
+    widgetElement.appendChild(reviewSelectionButton);
+  }
+};
+
+const setupKeyboardShortcuts = () => {
+  // Remove existing handler if any
+  if (handleKeyboardShortcuts) {
+    document.removeEventListener("keydown", handleKeyboardShortcuts);
+  }
+
+  handleKeyboardShortcuts = (e: KeyboardEvent) => {
+    const activeReview = getActiveReview();
+    
+    // Only handle shortcuts when review is active
+    if (!activeReview) return;
+
+    // Press 'c' to enable comment mode
+    if (e.key === 'c' || e.key === 'C') {
+      // Don't trigger if user is typing in an input/textarea
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        return;
+      }
+      
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const storedSettings = loadSettings();
+      if (storedSettings) {
+        userSettings = storedSettings;
+        addCreateCommentFormListener();
+      } else {
+        openSettingsDialog();
+      }
+      return;
+    }
+
+    // Command+Enter or Ctrl+Enter to finalize review
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if (confirm("Are you sure you want to finalize this review? This will end the current review session.")) {
+        finalizeReview();
+      }
+      return;
+    }
+  };
+
+  document.addEventListener("keydown", handleKeyboardShortcuts);
 };
 
 export const createWidget = () => {
-  const widget = document.createElement("div");
-  widget.className = "opencomments-widget";
+  // Remove existing widget if it exists
+  if (widgetElement) {
+    widgetElement.remove();
+  }
 
-  // Comment button (top)
-  const commentButton = document.createElement("button");
-  commentButton.className =
-    "opencomments-widget-button opencomments-widget-button--comment";
+  widgetElement = createDiv({
+    className: "opencomments-widget",
+    children: [],
+  });
 
-  const commentIcon = createCommentIcon();
-  commentIcon.setAttribute("class", "opencomments-widget-icon");
-  commentButton.appendChild(commentIcon);
+  updateWidgetButtons();
+  setupKeyboardShortcuts();
 
-  commentButton.onclick = (e) => {
-    e.stopPropagation();
+  // Listen for review state changes
+  window.addEventListener("review-started", () => {
+    updateWidgetButtons();
+    setupKeyboardShortcuts();
+  });
+  
+  window.addEventListener("review-finalized", () => {
+    updateWidgetButtons();
+    setupKeyboardShortcuts();
+  });
 
-    // Check if settings exist in localStorage
-    const storedSettings = loadSettings();
-    if (storedSettings) {
-      // Use stored settings and go straight to comment mode
-      userSettings = storedSettings;
-      addCreateCommentFormListener();
-    } else {
-      // No settings found, open settings dialog first
-      openSettingsDialog();
+  window.addEventListener("review-exited", () => {
+    updateWidgetButtons();
+    setupKeyboardShortcuts();
+  });
+
+  document.body.appendChild(widgetElement);
+  
+  return widgetElement;
+};
+
+export const createWidgetWithTracking = () => {
+  return createWidget();
+};
+
+export const removeWidget = () => {
+  if (widgetElement) {
+    if (handleKeyboardShortcuts) {
+      document.removeEventListener("keydown", handleKeyboardShortcuts);
+      handleKeyboardShortcuts = null;
     }
-  };
+    widgetElement.remove();
+    widgetElement = null;
+    commentButton = null;
+    settingsButton = null;
+    finalizeButton = null;
+    reviewSelectionButton = null;
+    expandedContent = null;
+    isReviewListExpanded = false;
+  }
+};
 
-  // Settings button (bottom)
-  const settingsButton = document.createElement("button");
-  settingsButton.className =
-    "opencomments-widget-button opencomments-widget-button--settings";
-
-  const settingsIcon = createSettingsIcon();
-  settingsIcon.setAttribute("class", "opencomments-widget-icon");
-  settingsButton.appendChild(settingsIcon);
-
-  settingsButton.onclick = (e) => {
-    e.stopPropagation();
-    openSettingsDialog();
-  };
-
-  // Refresh button (bottom)
-  const refreshButton = document.createElement("button");
-  refreshButton.className =
-    "opencomments-widget-button opencomments-widget-button--refresh";
-
-  const refreshIcon = createRefreshIcon();
-  refreshIcon.setAttribute("class", "opencomments-widget-icon");
-  refreshButton.appendChild(refreshIcon);
-
-  refreshButton.onclick = async (e) => {
-    e.stopPropagation();
-
-    // Disable button during refresh
-    refreshButton.disabled = true;
-
-    // Clear existing icons
-    clearAllIcons();
-
-    // Re-render all issues
-    try {
-      await renderAllIssues();
-    } catch (error) {
-      console.error("Failed to refresh comments:", error);
-    } finally {
-      // Re-enable button
-      refreshButton.disabled = false;
-    }
-  };
-
-  widget.appendChild(commentButton);
-  widget.appendChild(settingsButton);
-  widget.appendChild(refreshButton);
-
-  document.body.appendChild(widget);
+export const updateWidget = () => {
+  if (widgetElement) {
+    updateWidgetButtons();
+  }
 };

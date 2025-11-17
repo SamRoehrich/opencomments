@@ -1,19 +1,20 @@
 import { sql } from "bun";
 export const seed = async () => {
   await sql`
-    CREATE TABLE review (
+    CREATE TABLE IF NOT EXISTS review (
       id SERIAL PRIMARY KEY,
       name TEXT NOT NULL,
       description TEXT,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       user_id TEXT NOT NULL,
-      env_id TEXT
+      env_id TEXT,
+      status TEXT
     )
   `;
 
   await sql`
-    CREATE TABLE issue (
+    CREATE TABLE IF NOT EXISTS issue (
       id SERIAL PRIMARY KEY,
       url TEXT,
       description TEXT,
@@ -36,7 +37,7 @@ export const seed = async () => {
   `;
 
   await sql`
-    CREATE TABLE comment (
+    CREATE TABLE IF NOT EXISTS comment (
       id SERIAL PRIMARY KEY,
       comment TEXT NOT NULL,
       issue_id INTEGER NOT NULL REFERENCES issue(id) ON DELETE CASCADE,

@@ -5,11 +5,26 @@ import {
 import { renderAllIssues } from "../lib/render-all-issues";
 import type { ElementPositionMeta } from "../lib/types";
 import { captureViewportScreenshot } from "../lib/capture-screenshot";
+import {
+  createButton,
+  createTextarea,
+  createForm,
+  createDiv,
+  addDialogSubmitShortcut,
+} from "./elements";
 
 export const createCommentForm = (args: ElementPositionMeta) => {
-  removeCreateCommentFormListener();
-  const parent = document.createElement("div");
-  parent.className = "opencomments-create-form";
+  // Don't disable comment mode yet - keep it active while form is open
+  // It will be disabled after successful submission or cancellation
+  
+  // Remove existing dialog if it exists
+  (window as any).OpenComments.dialog.remove();
+  
+  const parent = createDiv({
+    className: args.clickPosition 
+      ? "opencomments-create-form" 
+      : ["opencomments-create-form", "opencomments-create-form--centered"],
+  });
   
   // Position the form below where the user clicked
   if (args.clickPosition) {
@@ -45,93 +60,80 @@ export const createCommentForm = (args: ElementPositionMeta) => {
     }
   } else {
     // Fallback to center if no position provided
-    parent.className = "opencomments-create-form opencomments-create-form--centered";
     document.body.appendChild(parent);
   }
 
-  const form = document.createElement("form");
-  form.className = "opencomments-create-form-inner";
+  const input = createTextarea({
+    className: "opencomments-create-form-textarea",
+    placeholder: "Enter your comment...",
+  });
 
-  const input = document.createElement("textarea");
-  input.className = "opencomments-create-form-textarea";
-  input.placeholder = "Enter your comment...";
+  const buttonContainer = createDiv({
+    className: "opencomments-create-form-button-container",
+  });
 
-  const buttonContainer = document.createElement("div");
-  buttonContainer.className = "opencomments-create-form-button-container";
+  const submitButton = createButton({
+    className: "opencomments-create-form-button--submit",
+    innerHTML: "Comment",
+  });
 
-  const submitButton = document.createElement("button");
-  submitButton.className = "opencomments-create-form-button--submit";
-  submitButton.innerHTML = "Comment";
-  
-  // Add Command+Enter (Mac) or Ctrl+Enter (Windows/Linux) to submit
-  const handleSubmitShortcut = (event: KeyboardEvent) => {
-    // Check for Enter key
-    if (event.key === "Enter" || event.keyCode === 13) {
-      // Check for Command (Mac) or Ctrl (Windows/Linux)
-      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-      const isModifierPressed = isMac ? event.metaKey : event.ctrlKey;
-      
-      if (isModifierPressed) {
-        event.preventDefault();
-        event.stopPropagation();
-        // Trigger submit button click
-        submitButton.click();
-      }
-    }
-  };
-  
-  submitButton.onclick = (e) => handleButtonClick(e, input, args, parent, submitButton, handleSubmitShortcut);
-
-  const cancelButton = document.createElement("button");
-  cancelButton.className = "opencomments-create-form-button--cancel";
-  cancelButton.innerHTML = "Cancel";
-  cancelButton.onclick = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (parent.parentNode) {
-      parent.parentNode.removeChild(parent);
-    }
-    input.removeEventListener('keydown', handleSubmitShortcut);
-    // Go back to normal mode - don't re-add listener
-  };
+  const cancelButton = createButton({
+    className: "opencomments-create-form-button--cancel",
+    innerHTML: "Cancel",
+  });
 
   buttonContainer.appendChild(cancelButton);
   buttonContainer.appendChild(submitButton);
 
-  form.appendChild(input);
-  form.appendChild(buttonContainer);
+  const form = createForm({
+    className: "opencomments-create-form-inner",
+    children: [input, buttonContainer],
+  });
+
   parent.appendChild(form);
   
-  // Add click outside to close functionality
+  // Add keyboard shortcut support (must be after form is appended)
+  const cleanupSubmitShortcut = addDialogSubmitShortcut(parent, submitButton);
+
+  // Define handlers after cleanupSubmitShortcut is defined
   const handleClickOutside = (event: MouseEvent) => {
     if (parent && !parent.contains(event.target as Node)) {
-      if (parent.parentNode) {
-        parent.parentNode.removeChild(parent);
-      }
+      cleanupSubmitShortcut();
+      (window as any).OpenComments.dialog.remove();
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleEscape);
-      input.removeEventListener('keydown', handleSubmitShortcut);
-      // Go back to normal mode - don't re-add listener
+      // Disable comment mode when form is closed
+      removeCreateCommentFormListener();
     }
   };
-  
+
   // Add Escape key handler to close form
   const handleEscape = (event: KeyboardEvent) => {
     if (event.key === "Escape" || event.keyCode === 27) {
       event.preventDefault();
       event.stopPropagation();
-      if (parent.parentNode) {
-        parent.parentNode.removeChild(parent);
-      }
+      cleanupSubmitShortcut();
+      (window as any).OpenComments.dialog.remove();
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleEscape);
-      input.removeEventListener('keydown', handleSubmitShortcut);
-      // Go back to normal mode - don't re-add listener
+      // Disable comment mode when form is closed
+      removeCreateCommentFormListener();
     }
   };
+
+  // Set button handlers after handlers are defined
+  submitButton.onclick = (e) => handleButtonClick(e, input, args, parent, submitButton, handleClickOutside, handleEscape);
   
-  // Add keyboard shortcut listener to textarea
-  input.addEventListener('keydown', handleSubmitShortcut);
+  cancelButton.onclick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    cleanupSubmitShortcut();
+    (window as any).OpenComments.dialog.remove();
+    document.removeEventListener('mousedown', handleClickOutside);
+    document.removeEventListener('keydown', handleEscape);
+    // Disable comment mode when form is cancelled
+    removeCreateCommentFormListener();
+  };
   
   // Use mousedown instead of click, and add a longer delay to avoid immediate trigger
   // This ensures the click that opened the form doesn't immediately close it
@@ -139,6 +141,9 @@ export const createCommentForm = (args: ElementPositionMeta) => {
     document.addEventListener('mousedown', handleClickOutside);
     document.addEventListener('keydown', handleEscape);
   }, 100);
+  
+  // Register the form with the dialog manager
+  (window as any).OpenComments.dialog.set(parent);
   
   // Focus the input
   input.focus();
@@ -150,7 +155,8 @@ async function handleButtonClick(
   elementInfo: ElementPositionMeta,
   parent: HTMLDivElement,
   submitButton: HTMLButtonElement,
-  handleSubmitShortcut: (event: KeyboardEvent) => void,
+  handleClickOutside: (event: MouseEvent) => void,
+  handleEscape: (event: KeyboardEvent) => void,
 ) {
   e.preventDefault();
   e.stopPropagation();
@@ -177,6 +183,10 @@ async function handleButtonClick(
     return;
   }
 
+  // Get active review if one exists
+  const { getActiveReview } = await import("./review-dialog");
+  const activeReview = getActiveReview();
+
   const data = await createIssue({
     relative_x: elementInfo.relativeX,
     relative_y: elementInfo.relativeY,
@@ -190,17 +200,19 @@ async function handleButtonClick(
     url: window.location.href,
     user_id: settings.name,
     env_id: settings.env,
+    review_id: activeReview?.id,
     screenshot: screenshot || undefined
   });
 
   if (data.id) {
-    if (parent.parentNode) {
-      parent.parentNode.removeChild(parent);
-    }
-    // Clean up keyboard listener
-    input.removeEventListener('keydown', handleSubmitShortcut);
-    // Don't re-add the listener - go back to normal mode
-    // User needs to click the widget again to enter comment mode
+    // Cleanup is handled by the dialog manager when removing
+    (window as any).OpenComments.dialog.remove();
+    // Clean up all listeners
+    document.removeEventListener('mousedown', handleClickOutside);
+    document.removeEventListener('keydown', handleEscape);
+    // Disable comment mode after successful comment creation
+    // User needs to click the comment button or press 'c' again to enter comment mode
+    removeCreateCommentFormListener();
     await renderAllIssues();
   } else {
     // Re-enable button if creation failed

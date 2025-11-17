@@ -79,29 +79,10 @@ const handleEscapeKey = (e: KeyboardEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
-    // First, check if there's a comment dialog open and close it
-    const commentDialog = document.querySelector('.opencomments-comment-dialog') as HTMLElement;
-    if (commentDialog) {
-      commentDialog.remove();
-      // Clean up any event listeners by removing and re-adding would be handled by the dialog itself
+    // First, check if there's a dialog open and close it
+    if ((window as any).OpenComments?.dialog?.element) {
+      (window as any).OpenComments.dialog.remove();
       return; // Don't exit comment mode, just close the dialog
-    }
-    
-    // Check if there's a comment form open and close it
-    const commentForm = document.querySelector('.opencomments-create-form') as HTMLElement;
-    if (commentForm) {
-      // Remove the form and clean up click-outside listener
-      if (commentForm.parentNode) {
-        commentForm.parentNode.removeChild(commentForm);
-      }
-      return; // Don't exit comment mode, just close the form
-    }
-    
-    // Check if there's a settings dialog open and close it
-    const settingsDialog = document.querySelector('.opencomments-settings-dialog') as HTMLElement;
-    if (settingsDialog) {
-      settingsDialog.remove();
-      return; // Don't exit comment mode, just close the settings dialog
     }
     
     // If no dialogs are open and we're in comment mode, exit comment mode
@@ -112,33 +93,33 @@ const handleEscapeKey = (e: KeyboardEvent) => {
 };
 
 
+import { createOverlay as createOverlayElement } from "../ui/elements/overlay";
+
 const createOverlay = () => {
-  const overlay = document.createElement("div");
-  overlay.style.position = "fixed";
-  overlay.style.top = "0";
-  overlay.style.left = "0";
-  overlay.style.width = "100%";
-  overlay.style.height = "100%";
-  overlay.style.zIndex = "9997"; // Below widget (9998) but above everything else
-  overlay.style.cursor = createCommentCursor();
-  overlay.style.backgroundColor = "transparent";
-  overlay.style.pointerEvents = "auto";
+  const overlay = createOverlayElement({
+    zIndex: 9997, // Below widget (9998) but above everything else
+    cursor: createCommentCursor(),
+    backgroundColor: "transparent",
+    onMouseDown: (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      // Call the actual handler
+      handleMouseDown(e);
+    },
+    onClick: (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+    },
+    onKeyDown: (e) => {
+      if (e.key === "Escape" || e.keyCode === 27) {
+        handleEscapeKey(e);
+      }
+    },
+  });
   
   // Prevent all interactions
-  overlay.onmousedown = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    e.stopImmediatePropagation();
-    // Call the actual handler
-    handleMouseDown(e);
-  };
-  
-  overlay.onclick = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    e.stopImmediatePropagation();
-  };
-  
   overlay.oncontextmenu = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -170,16 +151,6 @@ const createOverlay = () => {
     e.stopPropagation();
     e.stopImmediatePropagation();
   };
-  
-  // Handle Escape key on overlay as well
-  overlay.onkeydown = (e) => {
-    if (e.key === "Escape" || e.keyCode === 27) {
-      handleEscapeKey(e);
-    }
-  };
-  
-  // Make overlay focusable for keyboard events
-  overlay.setAttribute("tabindex", "-1");
   
   return overlay;
 };

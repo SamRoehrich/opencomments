@@ -16,10 +16,16 @@ function getApiBaseUrl(): string {
   return "http://localhost:3001";
 }
 
-export const getAllIssues = async (envId?: string): Promise<Issue[]> => {
+export const getAllIssues = async (envId?: string, reviewId?: number): Promise<Issue[]> => {
   const baseUrl = getApiBaseUrl();
-  const url = envId
-    ? `${baseUrl}/api/issues?env=${encodeURIComponent(envId)}`
+  const params = new URLSearchParams();
+  if (reviewId) {
+    params.append("review", reviewId.toString());
+  } else if (envId) {
+    params.append("env", envId);
+  }
+  const url = params.toString()
+    ? `${baseUrl}/api/issues?${params.toString()}`
     : `${baseUrl}/api/issues`;
   const data = await fetch(url);
   const issues = (await data.json()) as Issue[];
