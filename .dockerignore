@@ -1,0 +1,47 @@
+# sst
+.sst
+
+# Dependencies
+**/node_modules
+**/dist
+**/build
+**/.next
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Documentation
+**/README.md
+**/LICENSE
+**/*.md
+
+# Test files
+**/__tests__
+**/*.test.*
+**/*.spec.*
+
+# Frontend build artifacts (not needed for backend)
+packages/frontend/src
+packages/frontend/public
+packages/frontend/vite.config.ts
+packages/package/src
+packages/package/dist
+packages/package/example.html
+packages/package/index.html
+
+# Backend specific ignores
+packages/backend/better-auth_migrations
+packages/backend/scripts
+packages/backend/.dockerignore

@@ -5,6 +5,34 @@
 
 declare module "sst" {
   export interface Resource {
+    "BETTER_AUTH_SECRET": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "BETTER_AUTH_URL": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "DATABASE_URL": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "GITHUB_CLIENT_ID": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "GITHUB_CLIENT_SECRET": {
+      "type": "sst.sst.Secret"
+      "value": string
+    }
+    "MyService": {
+      "service": string
+      "type": "sst.aws.Service"
+      "url": string
+    }
+    "MyVpc": {
+      "type": "sst.aws.Vpc"
+    }
   }
 }
 /// <reference path="sst-env.d.ts" />
