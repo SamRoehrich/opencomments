@@ -1,13 +1,10 @@
-name: Build and Deploy Package to R2
+name: Build and Deploy Package to S3
 
 on:
   push:
     branches:
       - main
       - master
-    paths:
-      - 'packages/package/**'
-      - '.github/workflows/build-and-deploy-package.yml'
   workflow_dispatch:
 
 jobs:
@@ -83,91 +80,145 @@ jobs:
           zip -r ../release-archive.zip *
           cd ../..
 
+      - name: Generate release body
+        id: release-body
+        env:
+          CDN_DOMAIN: ${{ secrets.CDN_DOMAIN }}
+          S3_BUCKET: ${{ secrets.S3_BUCKET }}
+          S3_BASE_PATH: ${{ secrets.S3_BASE_PATH || '' }}
+        run: |
+          BASE_PATH="${S3_BASE_PATH:+${S3_BASE_PATH}/}"
+          if [ -n "$CDN_DOMAIN" ]; then
+            BASE_URL="https://${CDN_DOMAIN}/${BASE_PATH}"
+          else
+            BASE_URL="https://${S3_BUCKET}.s3.amazonaws.com/${BASE_PATH}"
+          fi
+          
+          cat << EOF > /tmp/release-body.md
+          ## Package Release ${{ steps.version.outputs.version }}
+          
+          Built from commit: ${{ github.sha }}
+          
+          ### Files
+          - \`opencomments.js\` - Main bundle
+          - \`opencomments.js.map\` - Source map
+          - \`opencomments.css\` - Stylesheet
+          
+          ### Installation
+          
+          **Latest version:**
+          \`\`\`html
+          <link rel="stylesheet" href="${BASE_URL}latest/opencomments.css">
+          <script src="${BASE_URL}latest/opencomments.js"></script>
+          \`\`\`
+          
+          **Versioned (recommended for production):**
+          \`\`\`html
+          <link rel="stylesheet" href="${BASE_URL}${{ steps.version.outputs.version }}/opencomments.css">
+          <script src="${BASE_URL}${{ steps.version.outputs.version }}/opencomments.js"></script>
+          \`\`\`
+          EOF
+          
+          echo "body<<EOF" >> $GITHUB_OUTPUT
+          cat /tmp/release-body.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.version }}
           name: Release ${{ steps.version.outputs.version }}
-          body: |
-            ## Package Release ${{ steps.version.outputs.version }}
-            
-            Built from commit: ${{ github.sha }}
-            
-            ### Files
-            - `opencomments.js` - Main bundle
-            - `opencomments.js.map` - Source map
-            - `opencomments.css` - Stylesheet
-            
-            ### Installation
-            ```html
-            <link rel="stylesheet" href="${{ secrets.R2_ENDPOINT }}/${{ steps.version.outputs.version }}/opencomments.css">
-            <script src="${{ secrets.R2_ENDPOINT }}/${{ steps.version.outputs.version }}/opencomments.js"></script>
-            ```
+          body: ${{ steps.release-body.outputs.body }}
           files: |
             packages/package/release-archive.tar.gz
             packages/package/release-archive.zip
           draft: false
           prerelease: false
 
-      - name: Configure AWS CLI for R2
-        run: |
-          mkdir -p ~/.aws
-          echo "[default]" > ~/.aws/credentials
-          echo "aws_access_key_id = ${{ secrets.R2_ACCESS_KEY_ID }}" >> ~/.aws/credentials
-          echo "aws_secret_access_key = ${{ secrets.R2_SECRET_ACCESS_KEY }}" >> ~/.aws/credentials
-          echo "[default]" > ~/.aws/config
-          echo "region = auto" >> ~/.aws/config
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
 
-      - name: Upload to Cloudflare R2 (versioned)
+      - name: Upload to S3 (versioned and latest)
         env:
-          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
-          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+          S3_BUCKET: ${{ secrets.S3_BUCKET }}
+          S3_BASE_PATH: ${{ secrets.S3_BASE_PATH || '' }}
           VERSION_TAG: ${{ steps.version.outputs.version }}
         run: |
-          # Install AWS CLI if not available
-          if ! command -v aws &> /dev/null; then
-            pip install awscli
-          fi
-          
-          # Debug: Print version info
-          echo "Version tag: ${VERSION_TAG}"
-          echo "R2 Bucket: ${R2_BUCKET}"
-          echo "R2 Endpoint: ${R2_ENDPOINT}"
-          
-          # Upload files to R2 using S3-compatible API with version tag
           cd packages/package/dist
           
-          # List files to upload
           echo "Files to upload:"
           ls -la
+          
+          # Set base path (with trailing slash if provided)
+          BASE_PATH="${S3_BASE_PATH:+${S3_BASE_PATH}/}"
           
           # Upload each file to versioned path
           for file in *; do
             if [ -f "$file" ]; then
-              VERSIONED_PATH="s3://${R2_BUCKET}/${VERSION_TAG}/${file}"
-              LATEST_PATH="s3://${R2_BUCKET}/latest/${file}"
+              VERSIONED_PATH="s3://${S3_BUCKET}/${BASE_PATH}${VERSION_TAG}/${file}"
+              LATEST_PATH="s3://${S3_BUCKET}/${BASE_PATH}latest/${file}"
               
               echo "Uploading ${file} to ${VERSIONED_PATH}"
-              aws s3 cp "$file" "${VERSIONED_PATH}" \
-                --endpoint-url="${R2_ENDPOINT}" \
-                --region auto
+              aws s3 cp "$file" "${VERSIONED_PATH}" --cache-control "public, max-age=31536000, immutable"
               
               echo "Uploading ${file} to ${LATEST_PATH}"
-              aws s3 cp "$file" "${LATEST_PATH}" \
-                --endpoint-url="${R2_ENDPOINT}" \
-                --region auto
+              aws s3 cp "$file" "${LATEST_PATH}" --cache-control "public, max-age=3600"
             fi
           done
           
           echo "✅ Upload complete"
-          echo "Versioned URL: ${R2_ENDPOINT}/${VERSION_TAG}/"
-          echo "Latest URL: ${R2_ENDPOINT}/latest/"
+
+      - name: Set S3 bucket website configuration (if needed)
+        if: ${{ secrets.S3_BUCKET_WEBSITE == 'true' }}
+        env:
+          S3_BUCKET: ${{ secrets.S3_BUCKET }}
+        run: |
+          # Enable static website hosting if bucket is configured for it
+          aws s3 website s3://${S3_BUCKET}/ \
+            --index-document index.html \
+            --error-document error.html || echo "Website config already set or not needed"
+
+      - name: Invalidate CloudFront cache (if configured)
+        if: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID != '' }}
+        env:
+          CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
+          S3_BASE_PATH: ${{ secrets.S3_BASE_PATH || '' }}
+        run: |
+          BASE_PATH="${S3_BASE_PATH:+${S3_BASE_PATH}/}"
+          aws cloudfront create-invalidation \
+            --distribution-id ${CLOUDFRONT_DISTRIBUTION_ID} \
+            --paths "/${BASE_PATH}latest/*" "/${BASE_PATH}${{ steps.version.outputs.version }}/*"
 
       - name: Output deployment info
+        env:
+          S3_BUCKET: ${{ secrets.S3_BUCKET }}
+          S3_BASE_PATH: ${{ secrets.S3_BASE_PATH || '' }}
+          CDN_DOMAIN: ${{ secrets.CDN_DOMAIN || '' }}
         run: |
-          echo "✅ Package built and deployed to R2"
+          BASE_PATH="${S3_BASE_PATH:+${S3_BASE_PATH}/}"
+          if [ -n "$CDN_DOMAIN" ]; then
+            BASE_URL="https://${CDN_DOMAIN}/${BASE_PATH}"
+          else
+            BASE_URL="https://${S3_BUCKET}.s3.amazonaws.com/${BASE_PATH}"
+          fi
+          
+          echo "✅ Package built and deployed to S3"
           echo "Version: ${{ steps.version.outputs.version }}"
-          echo "Bucket: ${{ secrets.R2_BUCKET }}"
-          echo "Versioned path: ${{ secrets.R2_BUCKET }}/${{ steps.version.outputs.version }}/"
-          echo "Latest path: ${{ secrets.R2_BUCKET }}/latest/"
+          echo "Bucket: ${S3_BUCKET}"
+          echo ""
+          echo "📦 Versioned URLs:"
+          echo "  JS: ${BASE_URL}${{ steps.version.outputs.version }}/opencomments.js"
+          echo "  CSS: ${BASE_URL}${{ steps.version.outputs.version }}/opencomments.css"
+          echo ""
+          echo "🔗 Latest URLs:"
+          echo "  JS: ${BASE_URL}latest/opencomments.js"
+          echo "  CSS: ${BASE_URL}latest/opencomments.css"
+          echo ""
+          echo "💻 Usage:"
+          echo "  <link rel=\"stylesheet\" href=\"${BASE_URL}latest/opencomments.css\">"
+          echo "  <script src=\"${BASE_URL}latest/opencomments.js\"></script>"
 

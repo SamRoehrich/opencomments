@@ -13,6 +13,10 @@ declare module "sst" {
       "type": "sst.sst.Secret"
       "value": string
     }
+    "CdnBucket": {
+      "name": string
+      "type": "sst.aws.Bucket"
+    }
     "DATABASE_URL": {
       "type": "sst.sst.Secret"
       "value": string
