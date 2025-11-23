@@ -3,7 +3,7 @@ import { createSignal, Show, Switch, Match } from 'solid-js';
 import { currentView, setCurrentView } from './lib/widget-state';
 import {
   HomeSkeleton,
-  CreateReviewSkeleton,
+  CreateReview,
   ViewReviewSkeleton,
   ViewCommentSkeleton,
   CreateCommentSkeleton
@@ -106,7 +106,7 @@ const App: Component = () => {
                   <HomeSkeleton />
                 </Match>
                 <Match when={currentView() === 'createReview'}>
-                  <CreateReviewSkeleton />
+                  <CreateReview />
                 </Match>
                 <Match when={currentView() === 'viewReview'}>
                   <ViewReviewSkeleton />
