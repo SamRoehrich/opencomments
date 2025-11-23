@@ -15,12 +15,14 @@
       "name": "@opencomments/backend",
       "dependencies": {
         "@opencomments/types": "workspace:*",
+        "@trpc/server": "^11.7.2",
         "@types/pg": "^8.15.6",
         "better-auth": "^1.3.34",
         "bun-plugin-tailwind": "^0.1.2",
         "hono": "^4.10.4",
         "pg": "^8.16.3",
         "tailwind": "^4.0.0",
+        "zod": "^4.1.12",
       },
       "devDependencies": {
         "@types/bun": "latest",
@@ -90,6 +92,8 @@
       "name": "vite-template-solid",
       "version": "0.0.0",
       "dependencies": {
+        "@trpc/client": "^11.7.2",
+        "@trpc/server": "^11.7.2",
         "solid-js": "^1.9.9",
       },
       "devDependencies": {
@@ -567,6 +571,10 @@
 
     "@testing-library/react": ["@testing-library/react@16.3.0", "", { "dependencies": { "@babel/runtime": "^7.12.5" }, "peerDependencies": { "@testing-library/dom": "^10.0.0", "@types/react": "^18.0.0 || ^19.0.0", "@types/react-dom": "^18.0.0 || ^19.0.0", "react": "^18.0.0 || ^19.0.0", "react-dom": "^18.0.0 || ^19.0.0" }, "optionalPeers": ["@types/react", "@types/react-dom"] }, "sha512-kFSyxiEDwv1WLl2fgsq6pPBbw5aWKrsY2/noi1Id0TK0UParSF62oFQFGHXIyaG4pp2tEub/Zlel+fjjZILDsw=="],
 
+    "@trpc/client": ["@trpc/client@11.7.2", "", { "peerDependencies": { "@trpc/server": "11.7.2", "typescript": ">=5.7.2" } }, "sha512-OQxqUMfpDvjcszo9dbnqWQXnW2L5IbrKSz2H7l8s+mVM3EvYw7ztQ/gjFIN3iy0NcamiQfd4eE6qjcb9Lm+63A=="],
+
+    "@trpc/server": ["@trpc/server@11.7.2", "", { "peerDependencies": { "typescript": ">=5.7.2" } }, "sha512-AgB26PXY69sckherIhCacKLY49rxE2XP5h38vr/KMZTbLCL1p8IuIoKPjALTcugC2kbyQ7Lbqo2JDVfRSmPmfQ=="],
+
     "@tsconfig/bun": ["@tsconfig/bun@1.0.7", "", {}, "sha512-udGrGJBNQdXGVulehc1aWT73wkR9wdaGBtB6yL70RJsqwW/yJhIg6ZbRlPOfIUiFNrnBuYLBi9CSmMKfDC7dvA=="],
 
     "@tybys/wasm-util": ["@tybys/wasm-util@0.10.1", "", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-9tTaPJLSiejZKx+Bmog4uSubteqTvFrVrURwkmHixBo0G4seD0zUxp98E1DzUBJxLQ3NPwXrGKDiVjwx/DpPsg=="],
@@ -581,7 +589,7 @@
 
     "@types/babel__traverse": ["@types/babel__traverse@7.28.0", "", { "dependencies": { "@babel/types": "^7.28.2" } }, "sha512-8PvcXf70gTDZBgt9ptxJ8elBeBjcLOAcOtoO/mPJjtji1+CdGbHgm77om1GrsPxsiE+uXIpNSK64UYaIwQXd4Q=="],
 
-    "@types/bun": ["@types/bun@1.3.2", "", { "dependencies": { "bun-types": "1.3.2" } }, "sha512-t15P7k5UIgHKkxwnMNkJbWlh/617rkDGEdSsDbu+qNHTaz9SKf7aC8fiIlUdD5RPpH6GEkP0cK7WlvmrEBRtWg=="],
+    "@types/bun": ["@types/bun@1.3.3", "", { "dependencies": { "bun-types": "1.3.3" } }, "sha512-ogrKbJ2X5N0kWLLFKeytG0eHDleBYtngtlbu9cyBKFtNL3cnpDZkNdQj8flVf6WTZUX5ulI9AY1oa7ljhSrp+g=="],
 
     "@types/chai": ["@types/chai@5.2.3", "", { "dependencies": { "@types/deep-eql": "*", "assertion-error": "^2.0.1" } }, "sha512-Mw558oeA9fFbv65/y4mHtXDs9bPnFMZAL/jxdPFUpOHHIXX91mcgEHbS5Lahr+pwZFR8A7GQleRWeI6cGFC2UA=="],
 
@@ -713,7 +721,7 @@
 
     "bun-plugin-tailwind": ["bun-plugin-tailwind@0.1.2", "", { "peerDependencies": { "bun": ">=1.0.0" } }, "sha512-41jNC1tZRSK3s1o7pTNrLuQG8kL/0vR/JgiTmZAJ1eHwe0w5j6HFPKeqEk0WAD13jfrUC7+ULuewFBBCoADPpg=="],
 
-    "bun-types": ["bun-types@1.3.2", "", { "dependencies": { "@types/node": "*" }, "peerDependencies": { "@types/react": "^19" } }, "sha512-i/Gln4tbzKNuxP70OWhJRZz1MRfvqExowP7U6JKoI8cntFrtxg7RJK3jvz7wQW54UuvNC8tbKHHri5fy74FVqg=="],
+    "bun-types": ["bun-types@1.3.3", "", { "dependencies": { "@types/node": "*" } }, "sha512-z3Xwlg7j2l9JY27x5Qn3Wlyos8YAp0kKRlrePAOjgjMGS5IG6E7Jnlx736vH9UVI4wUICwwhC9anYL++XeOgTQ=="],
 
     "bytes": ["bytes@3.0.0", "", {}, "sha512-pMhOfFDPiv9t5jjIXkHosWmkSyQbvsgEVNkz0ERHbuLh2T/7j4Mqqpz523Fe8MVY89KC6Sh/QfS2sM+SjgFDcw=="],
 

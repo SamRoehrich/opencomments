@@ -109,13 +109,13 @@ const App: Component = () => {
                   <CreateReview />
                 </Match>
                 <Match when={currentView() === 'viewReview'}>
-                  <ViewReviewSkeleton />
+                  <ViewReviewSkeleton reviewId="1" />
                 </Match>
                 <Match when={currentView() === 'viewComment'}>
-                  <ViewCommentSkeleton />
+                  <ViewCommentSkeleton issueId="1" />
                 </Match>
                 <Match when={currentView() === 'createComment'}>
-                  <CreateCommentSkeleton />
+                  <CreateCommentSkeleton issueId="1" />
                 </Match>
               </Switch>
             </div>

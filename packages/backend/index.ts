@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { Pool } from "pg";
 import api from "./src/api";
+import trpcHandler from "./src/trpc-handler";
 
 // Import seed only in Bun runtime to avoid bundling issues
 if (typeof Bun !== "undefined") {
@@ -67,6 +68,7 @@ app.get("/health", async (c) => {
 });
 
 app.route("/api", api);
+app.all("/trpc/*", (c) => trpcHandler.fetch(c.req.raw));
 
 if (typeof Bun !== "undefined") {
   const port = parseInt(process.env.PORT || "3001", 10);
